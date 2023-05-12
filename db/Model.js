@@ -42,8 +42,14 @@ class Model {
     }
 
     // Read recorde cRud
-    find(field, value) {
-
+    find(field = null, value = null) {
+        let query = '';
+        if (field === null || value == null) {
+            query = `SELECT * FROM ${this.schema.tableName};`;
+        } else {
+            query = `SELECT * FROM ${this.schema.tableName} WHERE ${field} = '${value}';`;
+        }
+        console.log(query);
     }
 
     // Update record crUd
@@ -52,10 +58,14 @@ class Model {
     }
 
     // Delete record cruD
-    delete(recordID) {
-        // TO DO: current implementation does not require a delete function
-        // Deletes records set active field to false
-        // delete functionality may be applied in the future
+    delete(field = null, value = null) {
+        let query = '';
+        if (field === null || value == null) {
+            query = `DELETE * FROM ${this.schema.tableName};`;
+        } else {
+            query = `DELETE * FROM ${this.schema.tableName} WHERE ${field} = '${value}';`;
+        }
+        console.log(query);
     }
 
     // Create table
@@ -157,3 +167,5 @@ const schema2 = {
 }
 
 const model = new Model(null, null, schema2);
+model.find('email', 'ian@isilverstone.com');
+model.delete('email', 'ian@isilverstone.com');
