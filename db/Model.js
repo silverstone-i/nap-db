@@ -14,7 +14,7 @@ const schema1 = {
             primary: false,
             default: 'value',
             useDefault: false
-        }
+        },
     ],
     foreignKey:{
         table: 'referenceTable',
@@ -36,6 +36,33 @@ class Model {
         this.#init()
     }
 
+    // Create record Crud
+    insert(DTO) {
+
+    }
+
+    // Read recorde cRud
+    find(field, value) {
+
+    }
+
+    // Update record crUd
+    update(DTO, recordId) {
+
+    }
+
+    // Delete record cruD
+    delete(recordID) {
+        // TO DO: current implementation does not require a delete function
+        // Deletes records set active field to false
+        // delete functionality may be applied in the future
+    }
+
+    // Create table
+    createTable() {
+
+    }
+
     // This ia a private function called by the constructor 
     #init() {
         // Use this.schema to define the required sql tables
@@ -47,6 +74,7 @@ class Model {
         //console.log(result[0].name);
     }
 
+    // Build fields list for the INSERT query
     #fieldList() {
         return this.schema.fields.reduce((str, field) => {
             if (!(field.type === 'serial' || field.useDefault)) {
@@ -56,6 +84,7 @@ class Model {
         }, '').slice(0, -2);
     }
 
+    // Build the named params for the INSERT query
     #insertParams() {
         return this.schema.fields.reduce((str, field) => {
             if (!(field.type === 'serial' || field.useDefault)) {
@@ -65,6 +94,7 @@ class Model {
         }, '').slice(0, -2);
     }
 
+    // Build the UPDATE query
     #updateParams() {
         let primary = '';
         let query = this.schema.fields.reduce((str, field) => {
