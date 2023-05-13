@@ -1,6 +1,7 @@
 // Model.js
 // Base class for implementing CRUD interface to database
 'use strict';
+const pgp = require('pg-promise')();
 
 const schema1 = {
     tableName: 'tableName',
@@ -37,24 +38,28 @@ class Model {
     }
 
     // Create record Crud
-    insert(DTO) {
-
+    async insert(DTO) {
+        const query = this.pgp.as.format(this.insertQuery, DTO);
+        return await this.db.none(query, DTO);
     }
 
     // Read recorde cRud
-    find(field = null, value = null) {
-        let query = '';
+    async find(field = null, value = null) {
         if (field === null || value == null) {
-            query = `SELECT * FROM ${this.schema.tableName};`;
+            const findQuery = `SELECT * FROM ${this.schema.tableName};`;
+            const query = this.pgp.as.format(findQuery, null);
+            return await this.db.any(query);
         } else {
-            query = `SELECT * FROM ${this.schema.tableName} WHERE ${field} = '${value}';`;
+            const findQuery = `SELECT * FROM ${this.schema.tableName} WHERE ${field} = '${value}';`;
+            const query = this.pgp.as.format(findQuery, {field: field, value: value});
+           return await this.db.oneOrNone(query);
         }
-        console.log(query);
     }
 
     // Update record crUd
-    update(DTO, recordId) {
-
+    async update(DTO) {
+        const query = this.pgp.as.format(this.updateQuery, DTO);
+        return await this.db.none(query, DTO);
     }
 
     // Delete record cruD
@@ -65,7 +70,6 @@ class Model {
         } else {
             query = `DELETE * FROM ${this.schema.tableName} WHERE ${field} = '${value}';`;
         }
-        console.log(query);
     }
 
     // Create table
@@ -76,12 +80,8 @@ class Model {
     // This ia a private function called by the constructor 
     #init() {
         // Use this.schema to define the required sql tables
-        this.insert = `INSERT INTO ${this.schema.tableName} (${this.#fieldList()}) VALUES (${this.#insertParams()});`;
-        console.log(this.insert);
-        this.update = `UPDATE ${this.schema.tableName} SET ${this.#updateParams()}`
-        console.log(this.update);
-        
-        //console.log(result[0].name);
+        this.insertQuery = `INSERT INTO ${this.schema.tableName} (${this.#fieldList()}) VALUES (${this.#insertParams()});`;
+        this.updateQuery = `UPDATE ${this.schema.tableName} SET ${this.#updateParams()}`
     }
 
     // Build fields list for the INSERT query
@@ -109,7 +109,6 @@ class Model {
         let primary = '';
         let query = this.schema.fields.reduce((str, field) => {
             if(field.primary) {
-                console.log('Found primary key: ', field.name)
                 primary = field.name;
             }
 
@@ -166,6 +165,18 @@ const schema2 = {
     ]
 }
 
-const model = new Model(null, null, schema2);
-model.find('email', 'ian@isilverstone.com');
-model.delete('email', 'ian@isilverstone.com');
+const DTO = {
+    id: 1,
+    email: 'joe@gmail.com',
+    password: 'hopeidontgethacked',
+    employee_id: 123,
+    full_name: 'Joe Picket',
+    role: 'user',
+    created_by: 'Joe Picket',
+    last_modified_by: 'Joe Picket',
+};
+
+module.exports = Model;
+
+// const model = new Model(null, pgp, schema2);
+// model.find('id', 1);
