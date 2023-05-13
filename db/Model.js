@@ -1,7 +1,6 @@
 // Model.js
 // Base class for implementing CRUD interface to database
 'use strict';
-const pgp = require('pg-promise')();
 
 const schema1 = {
     tableName: 'tableName',
@@ -14,19 +13,15 @@ const schema1 = {
             notNull: false,
             primary: false,
             default: 'value',
-            useDefault: false
+            useDefault: false,
         },
     ],
-    foreignKey:{
+    foreignKey: {
         table: 'referenceTable',
-        refernceField: [
-            {field: 'referenceField'}
-        ],
-        tableField: [
-            {field: 'field'}
-        ]
-    }
-}
+        refernceField: [{ field: 'referenceField' }],
+        tableField: [{ field: 'field' }],
+    },
+};
 
 class Model {
     constructor(db, pgp, schema) {
@@ -34,7 +29,11 @@ class Model {
         this.pgp = pgp;
         this.schema = schema;
 
-        this.#init()
+        this.#init();
+    }
+
+    primaryKeyField() {
+        return this.schema.fields.find((field) => field.primary).name;
     }
 
     // Create record Crud
@@ -46,13 +45,14 @@ class Model {
     // Read recorde cRud
     async find(field = null, value = null) {
         if (field === null || value == null) {
-            const findQuery = `SELECT * FROM ${this.schema.tableName};`;
-            const query = this.pgp.as.format(findQuery, null);
+            const query = this.pgp.as.format(this.findAllQuery, null);
             return await this.db.any(query);
         } else {
-            const findQuery = `SELECT * FROM ${this.schema.tableName} WHERE ${field} = '${value}';`;
-            const query = this.pgp.as.format(findQuery, {field: field, value: value});
-           return await this.db.oneOrNone(query);
+            const query = this.pgp.as.format(this.findByFieldQuery, {
+                field,
+                value,
+            });
+            return await this.db.oneOrNone(query);
         }
     }
 
@@ -63,120 +63,89 @@ class Model {
     }
 
     // Delete record cruD
-    delete(field = null, value = null) {
-        let query = '';
-        if (field === null || value == null) {
-            query = `DELETE * FROM ${this.schema.tableName};`;
+    async delete(value = null) {
+        if (value == null) {
+            const query = this.pgp.as.format(this.deleteAllQuery, null);
+            return await this.db.none(query);
         } else {
-            query = `DELETE * FROM ${this.schema.tableName} WHERE ${field} = '${value}';`;
+            const query = this.pgp.as.format(this.deleteByPKQuery, {
+                value,
+            });
+            return await this.db.none(query);
         }
     }
 
     // Create table
-    createTable() {
+    createTable() {}
 
-    }
-
-    // This ia a private function called by the constructor 
+    // This ia a private function called by the constructor
     #init() {
         // Use this.schema to define the required sql tables
-        this.insertQuery = `INSERT INTO ${this.schema.tableName} (${this.#fieldList()}) VALUES (${this.#insertParams()});`;
-        this.updateQuery = `UPDATE ${this.schema.tableName} SET ${this.#updateParams()}`
+        this.insertQuery = `INSERT INTO ${
+            this.schema.tableName
+        } (${this.#insertFields()}) VALUES (${this.#insertValues()});`;
+        this.updateQuery = `UPDATE ${
+            this.schema.tableName
+        } SET ${this.#updateParams()}`;
+        this.findAllQuery = `SELECT * FROM ${this.schema.tableName};`;
+        this.findByFieldQuery = `SELECT * FROM ${this.schema.tableName} WHERE $[field] = '$[value]';`;
+        this.deleteAllQuery = `DELETE * FROM ${this.schema.tableName};`;
+        this.deleteByPKQuery = `DELETE * FROM ${
+            this.schema.tableName
+        } WHERE ${this.primaryKeyField()} = '$[value]';`;
     }
 
     // Build fields list for the INSERT query
-    #fieldList() {
-        return this.schema.fields.reduce((str, field) => {
-            if (!(field.type === 'serial' || field.useDefault)) {
-                str += field.name + ', '; // Concatenate field.name to the accumulated string
-            }
-            return str;  // Return the updated accumulated string
-        }, '').slice(0, -2);
+    #insertFields() {
+        return this.schema.fields
+            .reduce((str, field) => {
+                if (!(field.type === 'serial' || field.useDefault)) {
+                    str += field.name + ', '; // Concatenate field.name to the accumulated string
+                }
+                return str; // Return the updated accumulated string
+            }, '')
+            .slice(0, -2);
     }
 
     // Build the named params for the INSERT query
-    #insertParams() {
-        return this.schema.fields.reduce((str, field) => {
-            if (!(field.type === 'serial' || field.useDefault)) {
-                str += '${' + field.name + '}, '; // Concatenate field.name to the accumulated string
-            }
-            return str;  // Return the updated accumulated string
-        }, '').slice(0, -2);
+    #insertValues() {
+        return this.schema.fields
+            .reduce((str, field) => {
+                if (!(field.type === 'serial' || field.useDefault)) {
+                    str += '${' + field.name + '}, '; // Concatenate field.name to the accumulated string
+                }
+                return str; // Return the updated accumulated string
+            }, '')
+            .slice(0, -2);
     }
 
     // Build the UPDATE query
     #updateParams() {
         let primary = '';
-        let query = this.schema.fields.reduce((str, field) => {
-            if(field.primary) {
-                primary = field.name;
-            }
+        let query = this.schema.fields
+            .reduce((str, field) => {
+                if (field.primary) {
+                    primary = field.name;
+                }
 
-            if (!(field.type === 'serial' || field.useDefault || field.name === 'created_by')) {
+                if (
+                    !(
+                        field.type === 'serial' ||
+                        field.useDefault ||
+                        field.name === 'created_by'
+                    )
+                ) {
                     str += field.name + ' = ${' + field.name + '}, ';
-            }
+                }
 
-            return str;
-            
-        }, '').slice(0, -2);
+                return str;
+            }, '')
+            .slice(0, -2);
 
         query += ` WHERE ${primary} = ` + '${' + primary + '};';
         return query;
     }
 }
 
-const schema2 = {
-    tableName: 'users',
-    fields: [
-        {
-            name: 'id',
-            type: 'serial',
-            primary: true
-        },
-        {
-            name: 'email',
-        },
-        {
-            name: 'password',
-        },
-        {
-            name: 'employee_id',
-        },
-        {
-            name: 'full_name',
-        },
-        {
-            name: 'role',
-        },
-        {
-            name: 'created_at',
-            useDefault: true
-        },
-        {
-            name: 'created_by',
-        },
-        {
-            name: 'last_modified',
-            useDefault: true
-        },
-        {
-            name: 'last_modified_by',
-        },
-    ]
-}
-
-const DTO = {
-    id: 1,
-    email: 'joe@gmail.com',
-    password: 'hopeidontgethacked',
-    employee_id: 123,
-    full_name: 'Joe Picket',
-    role: 'user',
-    created_by: 'Joe Picket',
-    last_modified_by: 'Joe Picket',
-};
-
 module.exports = Model;
 
-// const model = new Model(null, pgp, schema2);
-// model.find('id', 1);

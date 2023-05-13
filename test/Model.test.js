@@ -92,9 +92,9 @@ describe('Model Testing', () => {
         // Perform the action that triggers the database query
         const result = await model.insert(DTO);
 
-        // Verify the behavior and capture the value of preparedQuery
-        const preparedQuery = pgpSpy.as.format.firstCall.returnValue;
-        expect(preparedQuery).to.equal(expectedQuery);
+        // Verify the behavior and capture the value of actualQuery
+        const actualQuery = pgpSpy.as.format.firstCall.returnValue;
+        expect(actualQuery).to.equal(expectedQuery);
     });
 
     it('should format the prepared statement correctly for find all', async () => {
@@ -103,9 +103,9 @@ describe('Model Testing', () => {
         // Perform the action that triggers the database query
         const result = await model.find();
 
-        // Verify the behavior and capture the value of preparedQuery
-        const preparedQuery = pgpSpy.as.format.firstCall.returnValue;
-        expect(preparedQuery).to.equal(expectedQuery);
+        // Verify the behavior and capture the value of actualQuery
+        const actualQuery = pgpSpy.as.format.firstCall.returnValue;
+        expect(actualQuery).to.equal(expectedQuery);
     });
 
     it('should format the prepared statement correctly for find one or none', async () => {
@@ -114,9 +114,9 @@ describe('Model Testing', () => {
         // Perform the action that triggers the database query
         const result = await model.find('id', 1);
 
-        // Verify the behavior and capture the value of preparedQuery
-        const preparedQuery = pgpSpy.as.format.firstCall.returnValue;
-        expect(preparedQuery, expectedQuery);
+        // Verify the behavior and capture the value of actualQuery
+        const actualQuery = pgpSpy.as.format.firstCall.returnValue;
+        expect(actualQuery, expectedQuery);
     });
 
     it('should format the prepared statement correctly for update', async () => {
@@ -125,8 +125,30 @@ describe('Model Testing', () => {
         // Perform the action that triggers the database query
         const result = await model.update(DTO);
 
-        // Verify the behavior and capture the value of preparedQuery
-        const preparedQuery = pgpSpy.as.format.firstCall?.returnValue;
-        expect(preparedQuery).to.equal(expectedQuery);
+        // Verify the behavior and capture the value of actualQuery
+        const actualQuery = pgpSpy.as.format.firstCall?.returnValue;
+        expect(actualQuery).to.equal(expectedQuery);
+    });
+
+    it('should format the prepared statement correctly for delete all', async () => {
+        // const insertQuery = `INSERT INTO users (email, password, employee_id, full_name, role, created_by, last_modified_by) VALUES ($[email], $[password], $[employee_id], $[full_name], $[role], $[created_by], $[last_modified_by]);`
+        const expectedQuery = `DELETE * FROM users;`;
+        // Perform the action that triggers the database query
+        const result = await model.delete();
+
+        // Verify the behavior and capture the value of actualQuery
+        const actualQuery = pgpSpy.as.format.firstCall.returnValue;
+        expect(actualQuery).to.equal(expectedQuery);
+    });
+
+    it('should format the prepared statement correctly for delete by PRIMARY KEY', async () => {
+        // const insertQuery = `INSERT INTO users (email, password, employee_id, full_name, role, created_by, last_modified_by) VALUES ($[email], $[password], $[employee_id], $[full_name], $[role], $[created_by], $[last_modified_by]);`
+        const expectedQuery = `DELETE * FROM users WHERE id = '1'`;
+        // Perform the action that triggers the database query
+        const result = await model.delete(1);
+
+        // Verify the behavior and capture the value of actualQuery
+        const actualQuery = pgpSpy.as.format.firstCall.returnValue;
+        expect(actualQuery, expectedQuery);
     });
 });
