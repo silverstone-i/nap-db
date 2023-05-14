@@ -6,7 +6,7 @@ const pgPromise = require('pg-promise');
 
 const schema2 = {
     tableName: 'users',
-    fields: [
+    columns: [
         {
             name: 'id',
             type: 'serial',
@@ -14,32 +14,71 @@ const schema2 = {
         },
         {
             name: 'email',
+            type: 'varchar',
+            length: 255,
+            unique: true,
+            notNull: true,
         },
         {
             name: 'password',
+            type: 'varchar',
+            length: 50,
+            notNull: true,
         },
         {
             name: 'employee_id',
+            type: 'int4',
+            notNull: true,
         },
         {
             name: 'full_name',
+            type: 'varchar',
+            length: 50,
+            notNull: true,
         },
         {
             name: 'role',
+            type: 'varchar',
+            length: 25,
+            notNull: true,
         },
         {
             name: 'created_at',
+            type: 'timestamptz',
+            default: 'CURRENT_TIMESTAMP',
             useDefault: true,
         },
         {
             name: 'created_by',
+            type: 'varchar',
+            length: 25,
+            notNull: true,
         },
         {
             name: 'last_modified',
             useDefault: true,
+            type: 'timestamptz',
         },
         {
             name: 'last_modified_by',
+            type: 'varchar',
+            length: 25,
+            notNull: true,
+        },
+    ],
+    foreignKeys: [
+        {
+            hasRelations: [
+                {
+                    name: 'employee_id',
+                },
+            ],
+            withColumns: [
+                {
+                    name: 'id',
+                },
+            ],
+            withTable: 'employees',
         },
     ],
 };
@@ -58,7 +97,8 @@ const DTO = {
 describe('Model Testing', () => {
     let pgp;
     let pgpSpy;
-    let model;
+    let model = undefined;
+    let dbStub;
 
     beforeEach(() => {
         // Create a spy for pgp.as.format
@@ -78,7 +118,7 @@ describe('Model Testing', () => {
         };
 
         // Create a new instance of the Model class
-        model = new Model(dbStub, pgpSpy, schema2);
+        model = new Model(dbStub, pgp, schema2)
     });
 
     afterEach(() => {
@@ -146,6 +186,29 @@ describe('Model Testing', () => {
         const expectedQuery = `DELETE * FROM users WHERE id = '1'`;
         // Perform the action that triggers the database query
         const result = await model.delete(1);
+
+        // Verify the behavior and capture the value of actualQuery
+        const actualQuery = pgpSpy.as.format.firstCall.returnValue;
+        expect(actualQuery, expectedQuery);
+    });
+
+    it('should format the prepared statement correctly for CREATE TABLE', async () => {
+        // const insertQuery = `INSERT INTO users (email, password, employee_id, full_name, role, created_by, last_modified_by) VALUES ($[email], $[password], $[employee_id], $[full_name], $[role], $[created_by], $[last_modified_by]);`
+        const expectedQuery = `CREATE TABLE users (
+            id serial PRIMARY KEY,
+            email varchar(255) UNIQUE NOT NULL,
+            password varchar(50) NOT NULL,
+            employee_id int4 NOT NULL,
+            full_name varchar(50) NOT NULL,
+            role varchar(25) NOT NULL,
+            created_at timestamptz DEFAULT CURRENT_TIMESTAMP,
+            created_by varchar(25) NOT NULL,
+            last_modified timestamptz,
+            last_modified_by varchar(25) NOT NULL,
+            FOREIGN KEY (employee_id) REFERENCES employees(id)
+            );`;
+        // Perform the action that triggers the database query
+        const result = await model.createTable();
 
         // Verify the behavior and capture the value of actualQuery
         const actualQuery = pgpSpy.as.format.firstCall.returnValue;
