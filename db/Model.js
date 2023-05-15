@@ -20,7 +20,9 @@ class Model extends SQLBuilder{
 
     // Create record Crud
     async insert(DTO) {
+        console.log(this.insertQuery);
         const query = this.pgp.as.format(this.insertQuery, DTO);
+        console.log(query);
         return await this.db.none(query, DTO);
     }
 
@@ -34,13 +36,17 @@ class Model extends SQLBuilder{
                 column,
                 value,
             });
+            console.log(query);
             return await this.db.oneOrNone(query);
         }
     }
 
     // Update record crUd
     async update(DTO) {
+        console.log(DTO);
+        console.log(this.updateQuery);
         const query = this.pgp.as.format(this.updateQuery, DTO);
+        console.log(query);
         return await this.db.none(query, DTO);
     }
 
@@ -60,8 +66,7 @@ class Model extends SQLBuilder{
     // Create table
     async createTable() {
         const query = this.pgp.as.format(this.tableSQL(), null);
-        console.log(query);
-//        return await this.db.none(query);
+        return await this.db.none(query);
     }
 }
 

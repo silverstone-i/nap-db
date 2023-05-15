@@ -150,12 +150,14 @@ describe('Model Testing', () => {
 
     it('should format the prepared statement correctly for find one or none', async () => {
         // const insertQuery = `INSERT INTO users (email, password, employee_id, full_name, role, created_by, last_modified_by) VALUES ($[email], $[password], $[employee_id], $[full_name], $[role], $[created_by], $[last_modified_by]);`
-        const expectedQuery = `SELECT * FROM users WHERE id = '1'`;
+        const expectedQuery = `SELECT * FROM users WHERE email = 'joe@gmail.com'`;
         // Perform the action that triggers the database query
-        const result = await model.find('id', 1);
+        const result = await model.find('email', 'joe@gmail.com');
 
         // Verify the behavior and capture the value of actualQuery
         const actualQuery = pgpSpy.as.format.firstCall.returnValue;
+        console.log(actualQuery);
+        console.log(expectedQuery);
         expect(actualQuery, expectedQuery);
     });
 

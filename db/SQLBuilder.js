@@ -50,6 +50,7 @@ class SQLBuilder {
         query += this.#buildForeignKeys(this.schema.foreignKeys);
         query = query.slice(0, -2) + '\n);';
 
+        console.log('tableSQL', query);
         return query;
     }
 
@@ -59,7 +60,7 @@ class SQLBuilder {
 
     findSQL(findAll = true) {
         if(findAll) return `SELECT * FROM ${this.schema.tableName};`;
-        return `SELECT * FROM ${this.schema.tableName} WHERE $[column] = '$[value]';`;
+        return `SELECT * FROM ${this.schema.tableName} ` + "WHERE ${column:name} = '${value:value}';";
     }
 
     updateSQL() {
@@ -78,7 +79,7 @@ class SQLBuilder {
     #insertColumns(columns) {
         return columns
             .reduce((str, column) => {
-                if (!(column.type === 'serial' || column.useDefault)) {
+                if (!(column.type === 'serial' || column.useDefault || column.name === 'last_modified' || column.name === 'last_modified_by')) {
                     str += column.name + ', '; // Concatenate field.name to the accumulated string
                 }
                 return str; // Return the updated accumulated string
@@ -90,7 +91,7 @@ class SQLBuilder {
     #insertColumnValues(columns) {
         return columns
             .reduce((str, column) => {
-                if (!(column.type === 'serial' || column.useDefault)) {
+                if (!(column.type === 'serial' || column.useDefault || column.name === 'last_modified' || column.name === 'last_modified_by')) {
                     str += '${' + column.name + '}, '; // Concatenate field.name to the accumulated string
                 }
                 return str; // Return the updated accumulated string
