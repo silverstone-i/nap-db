@@ -55,7 +55,7 @@ const schema2 = {
             notNull: true,
         },
         {
-            name: 'last_modified',
+            name: 'last_modified_at',
             useDefault: true,
             type: 'timestamptz',
         },

@@ -2,6 +2,70 @@
 // Server to test DAL built using pg-promise
 'use strict';
 
+const schema2 = {
+    tableName: 'users',
+    columns: [
+        {
+            name: 'id',
+            type: 'serial',
+            primary: true,
+        },
+        {
+            name: 'email',
+            type: 'varchar',
+            length: 255,
+            unique: true,
+            notNull: true,
+        },
+        {
+            name: 'password',
+            type: 'varchar',
+            length: 50,
+            notNull: true,
+        },
+        {
+            name: 'employee_id',
+            type: 'int4',
+            notNull: true,
+        },
+        {
+            name: 'full_name',
+            type: 'varchar',
+            length: 50,
+            notNull: true,
+        },
+        {
+            name: 'role',
+            type: 'varchar',
+            length: 25,
+            notNull: true,
+        },
+        {
+            name: 'created_at',
+            type: 'timestamptz',
+            default: 'CURRENT_TIMESTAMP',
+            useDefault: true,
+        },
+        {
+            name: 'created_by',
+            type: 'varchar',
+            length: 25,
+            notNull: true,
+        },
+        {
+            name: 'last_modified_at',
+            useDefault: true,
+            type: 'timestamptz',
+        },
+        {
+            name: 'last_modified_by',
+            type: 'varchar',
+            length: 25,
+            notNull: true,
+        },
+    ],
+}
+
 const express = require('express');
 //let pgp = require('pg-promise');
 const config = require('config');
@@ -96,6 +160,13 @@ app.post('/update', (req, res) => {
         .then(res.send('Record updated'))
         .catch(err => res.send(err.message));
 });
+
+app.get('/test', (req, res) => {
+    const SQLFiles = require('./db/SQLFiles');
+    const sqlFiles = new SQLFiles(schema2);
+    sqlFiles.writeSQLFiles();
+    res.send('Write files')
+})
 
 // Start server
 app.listen(3000, console.log('Server listening on at http://localhost:3000'));

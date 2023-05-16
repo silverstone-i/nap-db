@@ -1,0 +1,1 @@
+UPDATE users SET ${this:name} = ${this:value} WHERE $2:name = $3:value
