@@ -59,8 +59,8 @@ class Model {
 
     // Create table
     async createTable() {
-        const qf = Model.#sql.create;
-        return await this.db.none(qf);
+        return await this.db.none(Model.#sql.create)
+            .catch ( err => Promise.reject(err));
     }
 }
 

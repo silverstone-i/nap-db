@@ -105,6 +105,23 @@ class SQLFiles {
         return `SELECT $1:name FROM ${this.schema.tableName} WHERE $2:name = $3;`;
     }
 
+    /////////////////////////////////////////////////////////////////////////////
+    // pg-promise does not handle UPDATE SET SQL in a flexible way.  There are
+    // two potential solutions
+    //      1. Create the update queries dynamically using a DTO.
+    //          app.put('/update/:key/:value', (req, res) => {
+    //              const key = req.params.key;
+    //              const value = req.params.value;
+    //              const DTO = req.body
+    //              ...... rest of code to update record
+    //          })
+    //
+    //          SQL helper function would use DTO to create a list of
+    //          column = updateValue, pairs wo be updata in
+    //          UPDATE table_name SET col1 = val1, col2 = val2, ... WHERE key = value
+    //
+    //      2. Use pg-promise built-in columnset helpers.  TODO: sandbox this to see functinality
+
     updateSQL() {
         const set = this.schema.columns
             .reduce((str, column) => {
