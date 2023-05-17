@@ -21,7 +21,7 @@ userSchema = {
         {
             name: 'employee_id',
             type: 'int4',
-            notNull: true,
+            unique: true,
         },
         {
             name: 'full_name',
@@ -48,7 +48,7 @@ userSchema = {
             notNull: true,
         },
         {
-            name: 'last_modified',
+            name: 'last_modified_at',
             type: 'timestamptz',
         },
         {

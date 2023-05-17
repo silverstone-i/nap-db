@@ -108,57 +108,73 @@ app.get('/log', (req, res) => {
     res.send('db.users.tableSQL');
 });
 
-app.get('/create', (req, res) => {
-    db.users
-        .createTable()
-        .then(res.send('Created user table'))
-        .catch((err) => res.send(err.message));
-});
+app.get('/create', async (req, res) => {
+    try {
+      await db.users.createTable();
+      res.status(201).send('Created user table');
+    } catch (err) {
+      console.log(err.message);
+      res.status(409).send(err.message);
+    }
+  });
 
-app.post('/insert', (req, res) => {
-    const DTO = req.body;
-    db.users
+app.post('/insert', async (req, res) => {
+  const DTO = req.body;
+  db.users
         .insert(DTO)
-        .then(res.send('Row inserted'))
-        .catch(err => res.send(err.message));
+        .then(() => res.send('Row inserted'))
+        .catch ( (err) =>  {
+            console.log(err.meassage);
+            res.status(500).send(err.message)
+        });
+
+//   try {
+//     await db.users.insert(DTO);
+//     res.status(201).send('Row inserted');
+//   } catch (err) {
+//     console.log(err.message);
+//     res.status(500).send(err.message);
+//   }
 });
 
-app.get('/find', (req, res) => {
-    db.users
-        .find()
-        .then((data) => res.send(data))
-        .catch((err) => res.send(err));
+app.get('/find', async (req, res) => {
+    try {
+        const data = await db.users.findAll();
+        res.send(data);
+    } catch (err) {
+        console.log(err.message);
+        res.status(500).send(err.message);
+    }
 });
 
 app.get('/find/:column/:value', (req, res) => {
     const column = req.params.column;
     const value = req.params.value;
+    const DTO = req.query.fields;
 
-    console.log('column ', column, 'value ', value);
-
-    const pgp = db.users.pgp;
-    if (
-        typeof pgp === 'object' &&
-        pgp !== null &&
-        typeof pgp.connect === 'function'
-    ) {
-        console.log('pgp object is valid.');
-    } else {
-        console.log('pgp object is not valid.');
-    }
-
-    db.users
-        .find(column, value)
-        .then((data) => res.send(data))
-        .catch((err) => res.send(err));
+    db.users.findWhere(DTO, column, value)
+        .then( data => res.status(200).send(data))
+        .catch ( err => res.status(404).send('Record not found'));
 });
 
-app.post('/update', (req, res) => {
+app.put('/update/', (req, res) => {
     const DTO = req.body;
     db.users
         .update(DTO)
-        .then(res.send('Record updated'))
-        .catch(err => res.send(err.message));
+        .then(() => res.send('Record updated'))
+        .catch(err => {
+            return res.status(500).send(err.message);
+        });
+});
+
+app.delete('/delete/:idValue', (req, res) => {
+    const idValue = req.params.idValue;
+    db.users
+        .purge(idValue)
+        .then(() => res.send('Record deleted'))
+        .catch(err => {
+            return res.status(500).send(err.message);
+    });
 });
 
 app.get('/test', (req, res) => {
@@ -166,7 +182,7 @@ app.get('/test', (req, res) => {
     const sqlFiles = new SQLFiles(schema2);
     sqlFiles.writeSQLFiles();
     res.send('Write files')
-})
+});
 
 // Start server
 app.listen(3000, console.log('Server listening on at http://localhost:3000'));

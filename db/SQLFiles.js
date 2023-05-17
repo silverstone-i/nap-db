@@ -39,7 +39,7 @@ class SQLFiles {
         this.schema = schema;
     }
 
-    writeSQLFiles() {
+    writeSQLFiles(reWrite = false) {
         // Get module directory
         const baseDirectory = __dirname;
         const sqlDirectory = path.join(baseDirectory, 'sql');
@@ -51,22 +51,31 @@ class SQLFiles {
         if (!fs.existsSync(repoDirectory)) fs.mkdirSync(repoDirectory);
 
         const create = path.join(repoDirectory, 'create.sql');
-        fs.writeFileSync(create, this.tableSQL());
+        if (!fs.existsSync(create) || reWrite)
+            fs.writeFileSync(create, this.tableSQL());
 
         const insert = path.join(repoDirectory, 'insert.sql');
-        fs.writeFileSync(insert, this.insertSQL());
+        if (!fs.existsSync(insert) || reWrite)
+            fs.writeFileSync(insert, this.insertSQL());
 
         const findAll = path.join(repoDirectory, 'findAll.sql');
-        fs.writeFileSync(findAll, this.findSQLAll());
+        if (!fs.existsSync(findAll) || reWrite)
+            fs.writeFileSync(findAll, this.findSQLAll());
 
         const findWhere = path.join(repoDirectory, 'findWhere.sql');
-        fs.writeFileSync(findWhere, this.findSQLWhere());
+        if (!fs.existsSync(findWhere) || reWrite)
+            fs.writeFileSync(findWhere, this.findSQLWhere());
 
         const update = path.join(repoDirectory, 'update.sql');
-        fs.writeFileSync(update, this.updateSQL());
-    }
+        if (!fs.existsSync(update) || reWrite)
+            fs.writeFileSync(update, this.updateSQL());
 
-    primaryKeyField() {
+        const purge = path.join(repoDirectory, 'purge.sql');
+        if (!fs.existsSync(purge) || reWrite)
+            fs.writeFileSync(purge, this.purgeSQL());
+        }
+
+    primaryKeyColumn() {
         return this.schema.columns.find((column) => column.primary).name;
     }
 
@@ -93,21 +102,34 @@ class SQLFiles {
     }
 
     findSQLWhere() {
-        return `SELECT $1:name FROM ${this.schema.tableName} WHERE $2:name = $3:value;`;
+        return `SELECT $1:name FROM ${this.schema.tableName} WHERE $2:name = $3;`;
     }
 
     updateSQL() {
-        return (
-            `UPDATE ${this.schema.tableName} SET ` +
-            '${this:name} = ${this:value} WHERE $2:name = $3:value'
-        );
+        const set = this.schema.columns
+            .reduce((str, column) => {
+                if (
+                    !(
+                        column.type === 'serial' ||
+                        column.primary ||
+                        column.name === 'created_at' ||
+                        column.name === 'created_by'
+                    )
+                ) {
+                    str +=
+                        `${column.name} = ` + '${' + `${column.name}` + '}, ';
+                }
+                return str;
+            }, '')
+            .slice(0, -2);
+
+            const where = ` WHERE ${this.primaryKeyColumn()} = ` + '${email};';
+
+        return `UPDATE ${this.schema.tableName} SET ` + set + where;
     }
 
-    deleteSQL(deleteAll = true) {
-        if (deleteAll) return `DELETE * FROM ${this.schema.tableName};`;
-        return `DELETE * FROM ${
-            this.schema.tableName
-        } WHERE ${this.primaryKeyField()} = '$[value]';`;
+    purgeSQL() {
+        return `DELETE FROM ${this.schema.tableName} WHERE ${this.primaryKeyColumn()} = $1;`
     }
 
     // Helper functions

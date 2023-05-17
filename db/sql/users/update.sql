@@ -1,1 +1,1 @@
-UPDATE users SET ${this:name} = ${this:value} WHERE $2:name = $3:value
+UPDATE users SET password = ${password}, employee_id = ${employee_id}, full_name = ${full_name}, role = ${role}, last_modified_at = ${last_modified_at}, last_modified_by = ${last_modified_by} WHERE email = ${email};

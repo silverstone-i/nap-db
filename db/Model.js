@@ -2,73 +2,91 @@
 // Base class for implementing CRUD interface to database
 'use strict';
 
-const SQLBuilder = require('./SQLBuilder');
+const {join} = require('path');
+const {QueryFile} = require('pg-promise');
+const SQLFiles = require('./SQLFiles');
 
-class Model extends SQLBuilder{
+class Model {
+    static #sql;
     constructor(db, pgp, schema) {
-        super(schema);
+        this.schema = schema;
         this.db = db;
         this.pgp = pgp;
+        
+        new SQLFiles(this.schema).writeSQLFiles();
 
-        this.insertQuery = this.insertSQL();
-        this.findAllQuery = this.findSQL();
-        this.findByFieldQuery = this.findSQL(false);
-        this.updateQuery = this.updateSQL();
-        this.deleteAllQuery = this.deleteSQL();
-        this.deleteByPKQuery = this.deleteSQL(false);
+        if(!Model.#sql) {
+            const sqlPath = join(__dirname, `sql/${this.schema.tableName}`);
+            Model.#sql = pgp.utils.enumSql(sqlPath, { recursive: true }, (file, fileName, path) => {
+                return sql(file);
+            });
+        }
     }
 
     // Create record Crud
-    async insert(DTO) {
-        console.log(this.insertQuery);
-        const query = this.pgp.as.format(this.insertQuery, DTO);
-        console.log(query);
-        return await this.db.none(query, DTO);
+    insert(DTO) {
+        return this.db.none(Model.#sql.insert, DTO).catch( (err) => Promise.reject(err));
     }
 
     // Read recorde cRud
-    async find(column = null, value = null) {
-        if (column === null || value == null) {
-            const query = this.pgp.as.format(this.findAllQuery, null);
-            return await this.db.any(query);
-        } else {
-            const query = this.pgp.as.format(this.findByFieldQuery, {
-                column,
-                value,
-            });
-            console.log(query);
-            return await this.db.oneOrNone(query);
-        }
+    findAll() {
+        return this.db.any(Model.#sql.findAll).catch( err => Promise.reject(err));
     }
 
+    // cRud - Locate a specific record returning selected fields
+    findWhere(DTO, column, param) {
+        return this.db.oneOrNone(Model.#sql.findWhere, [DTO, column, param]).catch( err => Promise.reject(err));
+    }
+    
+
     // Update record crUd
-    async update(DTO) {
-        console.log(DTO);
-        console.log(this.updateQuery);
-        const query = this.pgp.as.format(this.updateQuery, DTO);
-        console.log(query);
-        return await this.db.none(query, DTO);
+    update(DTO) {
+        return this.db.result(Model.#sql.update, DTO)
+            .then( (result) => {
+                if (result.rowCount === 0) {
+                    // No rows were updated, handle the case where the record does not exist
+                    throw new Error('User does not exist');
+                  }
+            })
+            .catch ( err => Promise.reject(err));
     }
 
     // Delete record cruD
-    async delete(value = null) {
-        if (value == null) {
-            const query = this.pgp.as.format(this.deleteAllQuery, null);
-            return await this.db.none(query);
-        } else {
-            const query = this.pgp.as.format(this.deleteByPKQuery, {
-                value,
-            });
-            return await this.db.none(query);
-        }
+    purge(idValue) {
+        return this.db.none(Model.#sql.purge, idValue)
+            .catch ( err => Promise.reject(err));
     }
 
     // Create table
     async createTable() {
-        const query = this.pgp.as.format(this.tableSQL(), null);
-        return await this.db.none(query);
+        const qf = Model.#sql.create;
+        return await this.db.none(qf);
     }
 }
 
-module.exports = Model;
+///////////////////////////////////////////////
+// Helper for linking to external query files;
+function sql(file) {
 
+    const options = {
+
+        // minifying the SQL is always advised;
+        // see also option 'compress' in the API;
+//        minify: true
+
+        // See also property 'params' for two-step template formatting
+    };
+
+    const qf = new QueryFile(file, options);
+
+    if (qf.error) {
+        // Something is wrong with our query file :(
+        // Testing all files through queries can be cumbersome,
+        // so we also report it here, while loading the module:
+        console.error(qf.error);
+    }
+    return qf;
+}
+
+
+module.exports = Model;
