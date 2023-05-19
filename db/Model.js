@@ -6,12 +6,39 @@ const {join} = require('path');
 const {QueryFile} = require('pg-promise');
 const SQLFiles = require('./SQLFiles');
 
+const timeStamps = [
+    {
+        name: 'created_at',
+        type: 'timestamptz',
+        default: 'CURRENT_TIMESTAMP',
+        useDefault: true,
+    },
+    {
+        name: 'created_by',
+        type: 'varchar',
+        length: 50,
+        notNull: true,
+    },
+    {
+        name: 'updated_at',
+        type: 'timestamptz',
+    },
+    {
+        name: 'updated_by',
+        type: 'varchar',
+        length: 50,
+        notNull: true,
+    }
+]
+
 class Model {
     static #sql;
     constructor(db, pgp, schema) {
         this.schema = schema;
+        if(schema.timeStamps === undefined || schema.timeStamps) this.schema.columns = [...schema.columns, ...timeStamps];
         this.db = db;
         this.pgp = pgp;
+        console.log(schema);
         
         new SQLFiles(this.schema).writeSQLFiles();
 

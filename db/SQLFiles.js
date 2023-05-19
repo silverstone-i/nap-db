@@ -5,6 +5,8 @@
  *
  *    {
  *        tableName: 'tableName',
+ *        dbSchema: 'schemaName',
+ *        timeStamps: true,
  *        columns: [
  *            {
  *                name: 'fieldName',

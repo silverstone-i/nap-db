@@ -40,29 +40,29 @@ const schema2 = {
             length: 25,
             notNull: true,
         },
-        {
-            name: 'created_at',
-            type: 'timestamptz',
-            default: 'CURRENT_TIMESTAMP',
-            useDefault: true,
-        },
-        {
-            name: 'created_by',
-            type: 'varchar',
-            length: 25,
-            notNull: true,
-        },
-        {
-            name: 'last_modified_at',
-            useDefault: true,
-            type: 'timestamptz',
-        },
-        {
-            name: 'last_modified_by',
-            type: 'varchar',
-            length: 25,
-            notNull: true,
-        },
+        // {
+        //     name: 'created_at',
+        //     type: 'timestamptz',
+        //     default: 'CURRENT_TIMESTAMP',
+        //     useDefault: true,
+        // },
+        // {
+        //     name: 'created_by',
+        //     type: 'varchar',
+        //     length: 25,
+        //     notNull: true,
+        // },
+        // {
+        //     name: 'last_modified_at',
+        //     useDefault: true,
+        //     type: 'timestamptz',
+        // },
+        // {
+        //     name: 'last_modified_by',
+        //     type: 'varchar',
+        //     length: 25,
+        //     notNull: true,
+        // },
     ],
 }
 
