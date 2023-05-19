@@ -87,6 +87,46 @@ function sql(file) {
     }
     return qf;
 }
+/////////////////////////////////////////////
+// Helper to create columnsets
+function createColumnsets(pgp, schema) {
+    // Create the columnset data array
+    const columns = JSON.parse(schema.columns.reduce( (str, column) => {
+        if(column.primary) return str += `{ "name": "${column.name}", "cnd": true}, `;
+        return str += `{ "name": "${column.name}", "skip": "function" }, `
+    }, '[').slice(0, -2) + ']');
+
+    columns.forEach(element => {
+        if(element.skip) element.skip = (c) => !c.exists;
+    });
+
+    // create all ColumnSet objects only once:
+    // Type TableName is useful when schema isn't default "public" ,
+    // otherwise you can just pass in a string for the table name.
+    const table = new pgp.helpers.TableName({
+        table: `${schema.tableName}`,
+        schema: `${schema.dbSchema}`,
+    });
+
+    const cs = {};
+    const csTable = `cs.${schema.tableName}`;
+    console.log(csTable);
+    cs[schema.tableName] = new pgp.helpers.ColumnSet(columns, {table: table} );
+
+    cs.insert = cs.users.extend(['created_by']);
+
+    cs.update = cs.users.extend([
+        {
+            name: 'last_modified_at',
+            mod: '^',
+            def: 'CURRENT_TIMESTAMP',
+        },
+        'last_modified_by',
+    ]);
+
+    return cs;
+}
+
 
 
 module.exports = Model;
