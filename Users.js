@@ -5,7 +5,6 @@ const Model = require('./db/Model');
 
 userSchema = {
     tableName: 'users',
-    useCS: false,
     columns: [
         {
             name: 'email',
@@ -23,7 +22,6 @@ userSchema = {
             name: 'employee_id',
             type: 'int4',
             notNull: true,
-            unique: true,
         },
         {
             name: 'full_name',
@@ -46,10 +44,6 @@ userSchema = {
     ],
 }
 
-
-
-
-
 class Users extends Model {
     static #cs;
 
@@ -57,8 +51,13 @@ class Users extends Model {
     constructor(db, pgp, schema = JSON.parse(JSON.stringify(userSchema))) { 
         super(db, pgp, schema);
         
-        if(this.schema.useCS && !Users.#cs) Users.#cs = this.createColumnsets();
-        if(this.schema.useCS) super.setColumnsets(Users.#cs);
+        if(!Users.#cs) Users.#cs = this.createColumnsets();
+        super.setColumnsets(Users.#cs);
+    }
+
+    insert(dto) {
+        dto.email = dto.email.toLowerCase();
+        return super.insert(dto).catch( (err) => Promise.reject(err));
     }
 
 }

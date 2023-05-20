@@ -1,1 +1,0 @@
-INSERT INTO users (${this:name}) VALUES (${this:csv});

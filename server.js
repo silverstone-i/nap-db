@@ -49,7 +49,6 @@ app.get('/create', async (req, res) => {
         await db.users.createTable();
         res.status(201).send('Created user table');
     } catch (err) {
-        console.log(err.message);
         res.status(409).send(err.message);
     }
 });
@@ -60,14 +59,12 @@ app.post('/insert', async (req, res) => {
         .insert(DTO)
         .then(() => res.send('Row inserted'))
         .catch((err) => {
-            console.log(err.meassage);
             res.status(500).send(err.message);
         });
 });
 
 app.get('/find', async (req, res) => {
     const dto = req.query.fields;
-    console.log(dto);
 
     try {
         const data = await db.users.findAll(dto);

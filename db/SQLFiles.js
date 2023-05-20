@@ -209,5 +209,3 @@ class SQLFiles {
 
 module.exports = SQLFiles;
 
-// const sqlFiles = new SQLFiles();
-// sqlFiles.writeSQLFiles();

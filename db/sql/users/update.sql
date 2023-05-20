@@ -1,1 +1,0 @@
-UPDATE users SET password = ${password}, employee_id = ${employee_id}, full_name = ${full_name}, role = ${role}, active = ${active}, updated_at = ${updated_at}, updated_by = ${updated_by} WHERE email = ${email};

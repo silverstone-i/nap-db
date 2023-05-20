@@ -156,8 +156,6 @@ describe('Model Testing', () => {
 
         // Verify the behavior and capture the value of actualQuery
         const actualQuery = pgpSpy.as.format.firstCall.returnValue;
-        console.log(actualQuery);
-        console.log(expectedQuery);
         expect(actualQuery, expectedQuery);
     });
 

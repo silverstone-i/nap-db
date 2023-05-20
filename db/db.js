@@ -18,7 +18,6 @@ class DB {
                 // for(const repository of Object.keys(repositories)) {
                 //     obj.repository = new repositories[repository](obj, pgp);
                 // }
-                console.log('calling repo')
                 // Check if the pgp object is valid
                 repos(obj, pgp); // Call back to repositories
             },
@@ -27,8 +26,6 @@ class DB {
         // Initializing the library:
         const pgp = pgPromise(initOptions);
         
-        console.log(typeof pgp);
-
         // Creating the database instance:
         const db = pgp(connection);
 
