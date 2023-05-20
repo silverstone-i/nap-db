@@ -5,6 +5,7 @@ const Model = require('./db/Model');
 
 userSchema = {
     tableName: 'users',
+    useCS: false,
     columns: [
         {
             name: 'email',
@@ -21,6 +22,7 @@ userSchema = {
         {
             name: 'employee_id',
             type: 'int4',
+            notNull: true,
             unique: true,
         },
         {
@@ -35,27 +37,12 @@ userSchema = {
             length: 25,
             notNull: true,
         },
-        // {
-        //     name: 'created_at',
-        //     type: 'timestamptz',
-        //     default: 'CURRENT_TIMESTAMP',
-        //     useDefault: true,
-        // },
-        // {
-        //     name: 'created_by',
-        //     type: 'varchar',
-        //     length: 25,
-        //     notNull: true,
-        // },
-        // {
-        //     name: 'last_modified_at',
-        //     type: 'timestamptz',
-        // },
-        // {
-        //     name: 'last_modified_by',
-        //     type: 'varchar',
-        //     length: 25,
-        // },
+        {
+            name: 'active',
+            type: 'bool',
+            notNull: true,
+            default: true
+        },
     ],
 }
 
@@ -64,12 +51,14 @@ userSchema = {
 
 
 class Users extends Model {
-    constructor(db, pgp, schema = userSchema) {
-        super(db, pgp, schema);
-    }
+    static #cs;
 
-    logQueries() {
-        console.log('CREATE TABLE\n', this.tableSQL);
+    // Deep copy userSchema to ensure it does not change
+    constructor(db, pgp, schema = JSON.parse(JSON.stringify(userSchema))) { 
+        super(db, pgp, schema);
+        
+        if(this.schema.useCS && !Users.#cs) Users.#cs = this.createColumnsets();
+        if(this.schema.useCS) super.setColumnsets(Users.#cs);
     }
 
 }

@@ -7,6 +7,7 @@
  *        tableName: 'tableName',
  *        dbSchema: 'schemaName',
  *        timeStamps: true,
+ *        useCS: false,
  *        columns: [
  *            {
  *                name: 'fieldName',
@@ -56,26 +57,28 @@ class SQLFiles {
         if (!fs.existsSync(create) || reWrite)
             fs.writeFileSync(create, this.tableSQL());
 
-        const insert = path.join(repoDirectory, 'insert.sql');
-        if (!fs.existsSync(insert) || reWrite)
-            fs.writeFileSync(insert, this.insertSQL());
+        if (!this.schema.useCS) {
+            const insert = path.join(repoDirectory, 'insert.sql');
+            if (!fs.existsSync(insert) || reWrite)
+                fs.writeFileSync(insert, this.insertSQL());
 
-        const findAll = path.join(repoDirectory, 'findAll.sql');
-        if (!fs.existsSync(findAll) || reWrite)
-            fs.writeFileSync(findAll, this.findSQLAll());
+            // const findAll = path.join(repoDirectory, 'findAll.sql');
+            // if (!fs.existsSync(findAll) || reWrite)
+            //     fs.writeFileSync(findAll, this.findSQLAll());
 
-        const findWhere = path.join(repoDirectory, 'findWhere.sql');
-        if (!fs.existsSync(findWhere) || reWrite)
-            fs.writeFileSync(findWhere, this.findSQLWhere());
+            // const findWhere = path.join(repoDirectory, 'findWhere.sql');
+            // if (!fs.existsSync(findWhere) || reWrite)
+            //     fs.writeFileSync(findWhere, this.findSQLWhere());
 
-        const update = path.join(repoDirectory, 'update.sql');
-        if (!fs.existsSync(update) || reWrite)
-            fs.writeFileSync(update, this.updateSQL());
+            const update = path.join(repoDirectory, 'update.sql');
+            if (!fs.existsSync(update) || reWrite)
+                fs.writeFileSync(update, this.updateSQL());
 
-        const purge = path.join(repoDirectory, 'purge.sql');
-        if (!fs.existsSync(purge) || reWrite)
-            fs.writeFileSync(purge, this.purgeSQL());
+            const purge = path.join(repoDirectory, 'purge.sql');
+            if (!fs.existsSync(purge) || reWrite)
+                fs.writeFileSync(purge, this.purgeSQL());
         }
+    }
 
     primaryKeyColumn() {
         return this.schema.columns.find((column) => column.primary).name;
@@ -100,7 +103,7 @@ class SQLFiles {
     }
 
     findSQLAll() {
-        return `SELECT * FROM ${this.schema.tableName}`;
+        return `SELECT $1:name FROM ${this.schema.tableName}`;
     }
 
     findSQLWhere() {
@@ -119,10 +122,12 @@ class SQLFiles {
     //          })
     //
     //          SQL helper function would use DTO to create a list of
-    //          column = updateValue, pairs wo be updata in
+    //          column = updateValue, pairs to be updata in
     //          UPDATE table_name SET col1 = val1, col2 = val2, ... WHERE key = value
     //
-    //      2. Use pg-promise built-in columnset helpers.  TODO: sandbox this to see functinality
+    //      2. Use pg-promise built-in columnset helpers.  This is essentially the equivalent
+    //         of 1 above. At this point it seems that column sets are the way to go.
+    //         Should revisit SQL files when complex queries are required 
 
     updateSQL() {
         const set = this.schema.columns
@@ -142,13 +147,15 @@ class SQLFiles {
             }, '')
             .slice(0, -2);
 
-            const where = ` WHERE ${this.primaryKeyColumn()} = ` + '${email};';
+        const where = ` WHERE ${this.primaryKeyColumn()} = ` + '${email};';
 
         return `UPDATE ${this.schema.tableName} SET ` + set + where;
     }
 
     purgeSQL() {
-        return `DELETE FROM ${this.schema.tableName} WHERE ${this.primaryKeyColumn()} = $1;`
+        return `DELETE FROM ${
+            this.schema.tableName
+        } WHERE ${this.primaryKeyColumn()} = $1;`;
     }
 
     // Helper functions

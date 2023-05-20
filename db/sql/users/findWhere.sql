@@ -1,1 +1,0 @@
-SELECT $1:name FROM users WHERE $2:name = $3;
