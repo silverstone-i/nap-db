@@ -42,7 +42,22 @@ userSchema = {
             default: true
         },
     ],
-}
+    foreignKeys: [
+        {
+            hasRelations: [
+                {
+                    name: 'employee_id',
+                },
+            ],
+            withColumns: [
+                {
+                    name: 'id',
+                },
+            ],
+            withTable: 'employees',
+        },
+    ],
+};
 
 class Users extends Model {
     static #cs;

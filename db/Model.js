@@ -18,7 +18,7 @@ class Model {
         this._selectAll = `SELECT $1:name FROM ${this.schema.tableName}`;
         this._selectWhere = `SELECT $1:name FROM ${this.schema.tableName} WHERE $2:name = $3;`;
         this._updateCondition =
-            `WHERE ${this.primaryKeyColumn()} = ` +
+            ` WHERE ${this.primaryKeyColumn()} = ` +
             '${' +
             `${this.primaryKeyColumn()}` +
             '};';
@@ -85,25 +85,31 @@ class Model {
             .then((result) => {
                 if (result.rowCount === 0) {
                     // No rows were updated, handle the case where the record does not exist
-                    throw new Error('User does not exist');
+                    throw new Error('Record does not exist');
                 }
             })
             .catch((err) => Promise.reject(err));
     }
 
-    // Delete record cruD
+    // Delete record cruD - Deletes the record with primary key = idValue
     purge(idValue) {
+        const deleteRow = `DELETE FROM ${this.schema.tableName} WHERE ${this.primaryKeyColumn()} = $1`;
+        const query = this.pgp.as.format(deleteRow, [idValue]);
         return this.db
-            .none(Model.#sql.purge, idValue)
+            .result(query)
+            .then((result) => {
+                if (result.rowCount === 0) {
+                    // No rows were updated, handle the case where the record does not exist
+                    throw new Error('Record does not exist');
+                }
+            })
             .catch((err) => Promise.reject(err));
     }
 
     // Create table
     createTable() {
         return this.writeCreateTableFile()
-            .then((qf) => {
-                return this.db.none(qf);
-            })
+            .then((qf) => this.db.none(qf))
             .catch((err) => Promise.reject(err));
     }
 
