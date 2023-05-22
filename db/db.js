@@ -3,14 +3,16 @@
 'use strict';
 
 /**
- *  Class to wrap pg-promise database initialization
+ * @class DB
+ * @classdesc Represents a pg_promise {@link https://vitaly-t.github.io/pg-promise/Database.html database} connection.
  */
 class DB {
+    static db;
     /**
      * static function used for one time intialization of DB
-     * @param {Oject} connection - Database connection - see {@link https://github.com/vitaly-t/pg-promise/wiki/Connection-Syntax Connection Syntax} 
+     * @param {string|Object} connection - Database connection - see {@link https://github.com/vitaly-t/pg-promise/wiki/Connection-Syntax Connection Syntax} 
      * @param {Object} repositories - List of derived classes
-     * @returns {db} - Fully initialized pg-promise database object with capSQL = true
+     * @returns {DB.db} - Fully initialized pg-promise database object with capSQL = true
      * @example
      * 
      * const express = require('express');
@@ -55,6 +57,7 @@ class DB {
      *  }
      */
     static init(connection, repositories) {
+        if(!DB.db) {
         const pgPromise = require("pg-promise");
         const { Diagnostics } = require("./diagnostics"); // optional diagnostics
 
@@ -80,12 +83,13 @@ class DB {
         const pgp = pgPromise(initOptions);
         
         // Creating the database instance:
-        const db = pgp(connection);
+        DB.db = pgp(connection);
 
         // Initializing optional diagnostics:
         Diagnostics.init(initOptions);
+    }
 
-        return { db };
+        return DB.db;
     }
 }
 

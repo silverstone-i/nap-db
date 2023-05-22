@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Users.js
 // users tabel model
 
@@ -72,7 +73,8 @@ class Users extends Model {
 
     insert(dto) {
         dto.email = dto.email.toLowerCase();
-        return super.insert(dto).catch( (err) => Promise.reject(err));
+        return super.insert(dto)
+            .catch( (err) => Promise.reject(err));
     }
 
 }

@@ -32,94 +32,7 @@
 
 const { SqlFileWriter, createColumnsets, timeStamps } = require('./nap');
 
-const tableSchema = {
-    tableName: 'tableName',
-    dbSchema: 'schemaName',
-    timeStamps: true,
-    useCS: false,
-    columns: [
-        {
-            name: 'fieldName',
-            type: 'dataType',
-            length: 255,
-            unique: false,
-            notNull: false,
-            primary: false,
-            default: 'value',
-            useDefault: false,
-        },
-    ],
-    foreignKeys: [
-        {
-            hasRelations: [{ name: 'field' }],
-            withColumns: [{ name: 'withField' }],
-            withTable: 'withTable',
-            onDeleteAction: 'action',
-            onUpdateAction: 'action',
-        },
-    ],
-};
 
-/**
- * @typedef {Object} Column
- * @property {string} name - The name of the column.
- * @property {string} type - The data type of the column.
- * @property {number} length - The length of the column.
- * @property {boolean} unique - Indicates whether the column values must be unique.
- * @property {boolean} notNull - Indicates whether the column can have null values.
- * @property {boolean} primary - Indicates whether the column is a primary key.
- * @property {string} default - The default value for the column.
- * @property {boolean} useDefault - Indicates whether to use the default value for the column.
- */
-
-/**
- * @typedef {Object} ForeignKey
- * @property {Array&lt;Relation>} hasRelations - The array of relations.
- * @property {Array&lt;Relation>} withColumns - The array of related columns.
- * @property {string} withTable - The name of the table being referenced.
- * @property {string} onDeleteAction - The action to perform on deletion.
- * @property {string} onUpdateAction - The action to perform on update.
- */
-
-/**
- * @typedef {Object} TableSchema
- * @property {string} tableName - The name of the table.
- * @property {string} dbSchema - The name of the database schema.
- * @property {boolean} timeStamps - Indicates whether timestamps are enabled.
- * @property {boolean} useCS - Indicates whether to use case-sensitive column names.
- * @property {Array&lt;Column>} columns - The array of column objects.
- * @property {Array&lt;ForeignKey>} foreignKeys - The array of foreign key objects.
- * 
- * @example
- *
- * const tableSchema = {
- *     tableName: 'tableName',
- *     dbSchema: 'schemaName',
- *     timeStamps: true,
- *     useCS: false,
- *     columns: [
- *         {
- *             name: 'fieldName',
- *             type: 'dataType',
- *             length: 255,
- *             unique: false,
- *             notNull: false,
- *             primary: false,
- *             default: 'value',
- *             useDefault: false,
- *         },
- *     ],
- *     foreignKeys: [
- *         {
- *             hasRelations: [{ name: 'field' }],
- *             withColumns: [{ name: 'withField' }],
- *             withTable: 'withTable',
- *             onDeleteAction: 'action',
- *             onUpdateAction: 'action',
- *         },
- *     ],
- * };
- */
   
 /**
  * Base class used to map columns in a database table
@@ -127,7 +40,7 @@ const tableSchema = {
 class Model {
     /**
      * Creates a new Model
-     * @param {DB} db - Database connection
+     * @param {Object} db - {@link https://vitaly-t.github.io/pg-promise/Database.html pg-promise} database connection represented by class {@link DB}
      * @param {Object} pgp - {@link https://vitaly-t.github.io/pg-promise/module-pg-promise.html pg-promise} object
      * @param {TableSchema} schema - Table schema to map columns
      */
@@ -147,7 +60,7 @@ class Model {
             '};';
     }
     /**
-     * Gets the current SQL query
+     * Gets the current select all query string
      * @description
      * The select all query is intially set to
      * SELECT [colmns] FROM tablename
@@ -156,32 +69,55 @@ class Model {
         return this._selectAll;
     }
 
+    /**
+     * Sets a new select all query string
+     */
     set selectAll(query) {
         this._selectAll = query;
     }
 
+    /**
+     * Gets the current where query string to select records
+     * @description
+     * The select where query is intially set to
+     * SELECT [colmns] FROM tablename WHERE [column] = value;
+     */
     get selectWhere() {
         return this._selectWhere;
     }
 
+    /**
+     * Sets a new select where query string
+     */
     set selectWhere(query) {
         this._selectWhere = query;
     }
 
+    /**
+     * Gets the current update where clause for the update query string
+     * @description
+     * The update where query is intially set to
+     * WHERE [primaryKeyColumn] = value
+     */
     get updateCondition() {
-        return this._selectWhere;
+        return this._updateCondition;
     }
 
+    /**
+     * Sets a new update where query string
+     */
     set updateCondition(query) {
-        this._selectWhere = query;
+        this._updateCondition = query;
     }
 
     /**
      * Get primary key column name
-     * @returns {string} Name of Tables PRIMAR KEY
+     * @returns {string|null} - Name of tables PRIMARY KEY
      */
     primaryKeyColumn() {
-        return this.schema.columns.find((column) => column.primary).name;
+
+        const primaryKeyColumn = this.schema.columns.find((column) => column.primary);
+        return primaryKeyColumn ? primaryKeyColumn.name : null;
     }
 
     /**
@@ -274,6 +210,10 @@ class Model {
             .catch((err) => Promise.reject(err));
     }
 
+    /**
+     * Writes CREATE table SQL to an SQL file. This method is primarily for internal use
+     * @returns {Object} - {@link http://vitaly-t.github.io/pg-promise/QueryFile.html QueryFile} to execute the CREATE TABLE query
+     */
     writeCreateTableFile() {
         const writer = new SqlFileWriter(this.schema);
         return writer
@@ -282,17 +222,163 @@ class Model {
             .catch((err) => Promise.reject(err));
     }
 
+    /**
+     * Creates a ColumnSet from the provided TableSchema
+     * @returns {Object} - pg-promise {@link https://vitaly-t.github.io/pg-promise/helpers.ColumnSet.html ColumnSet}
+     * @description
+     * This method is used to create a columnset by a derived class that is static. Using createColumnsets followed by
+     * setColumnsets ensures only a single instance of the derived class ColumnSet is created.  This is illustrated in
+     * the following example
+     * @example
+     * 
+     * userSchema = {
+     *      tableName: 'users',
+     *      columns: [
+     *          {
+     *              name: 'email',
+     *              type: 'varchar',
+     *              length: 255,
+     *              primary: true
+     *          },
+     *          {
+     *              name: 'password',
+     *              type: 'varchar',
+     *              length: 50,
+     *              notNull: true,
+     *          },
+     *          {
+     *              name: 'employee_id',
+     *              type: 'int4',
+     *              notNull: true,
+     *          },
+     *          {
+     *              name: 'full_name',
+     *              type: 'varchar',
+     *              length: 50,
+     *              notNull: true,
+     *          },
+     *          {
+     *              name: 'role',
+     *              type: 'varchar',
+     *              length: 25,
+     *              notNull: true,
+     *          },
+     *          {
+     *              name: 'active',
+     *              type: 'bool',
+     *              notNull: true,
+     *              default: true
+     *          },
+     *      ],
+     *      foreignKeys: [
+     *          {
+     *              hasRelations: [
+     *                  {
+     *                      name: 'employee_id',
+     *                  },
+     *              ],
+     *              withColumns: [
+     *                  {
+     *                      name: 'id',
+     *                  },
+     *              ],
+     *              withTable: 'employees',
+     *          },
+     *      ],
+     *  }; 
+     *  class Users extends Model {
+     *      static #cs; 
+     *      // Deep copy userSchema to ensure it does not change
+     *      constructor(db, pgp, schema = JSON.parse(JSON.stringify(userSchema))) { 
+     *          super(db, pgp, schema);
+     *          
+     *          // This ensures the column set is only created once for each User instance
+     *          if(!Users.#cs) {
+     *              Users.#cs = this.createColumnsets();
+     *              super.setColumnsets(Users.#cs);
+     *          }
+     *      } 
+     *      insert(dto) {
+     *          dto.email = dto.email.toLowerCase();
+     *          return super.insert(dto).catch( (err) => Promise.reject(err));
+     *      } 
+     *  }
+     */
     createColumnsets() {
         return createColumnsets(this.pgp, this.originalSchema);
     }
 
+    /**
+     * Sets the statically created ColumnSet in the derived class in the base class
+     * @param {Object} cs - pg-promise {@link https://vitaly-t.github.io/pg-promise/helpers.ColumnSet.html ColumnSet}
+     */
     setColumnsets(cs) {
         this.cs = cs;
     }
 }
 
 module.exports = Model;
-</code></pre>
+
+
+/**
+ * @typedef {Object} Column
+ * @property {!string} name - The name of the column.
+ * @property {!string} type - The data type of the column. Must be 'char' for length to be required.
+ * @property {number} [length] - The length of the column (required if type is 'char').
+ * @property {boolean} [unique] - Indicates whether the column values must be unique.
+ * @property {boolean} [notNull] - Indicates whether the column can have null values.
+ * @property {boolean} [primary] - Indicates whether the column is a primary key.
+ * @property {string} [default] - The default value for the column.
+ * @property {boolean} [useDefault] - Indicates whether to use the default value for the column.
+ */
+/**
+ * @typedef {Object} ForeignKey
+ * @property {Array&lt;string>} hasRelations - The columns used to link the foreign to the withTable
+ * @property {Array&lt;string>} withColumns - The array of related columns.
+ * @property {string} withTable - The name of the table being referenced.
+ * @property {string} onDeleteAction - The action to perform on deletion.
+ * @property {string} onUpdateAction - The action to perform on update.
+ */
+
+/**
+ * @typedef {Object} TableSchema
+ * @property {string} tableName - The name of the table.
+ * @property {string} dbSchema - The name of the database schema.
+ * @property {boolean} timeStamps - Indicates whether timestamps are enabled.
+ * @property {boolean} useCS - Indicates whether to use case-sensitive column names.
+ * @property {Array&lt;Column>} columns - The array of column objects.
+ * @property {Array&lt;ForeignKey>} foreignKeys - The array of foreign key objects.
+ * 
+ * @example
+ *
+ * const tableSchema = {
+ *     tableName: 'tableName',
+ *     dbSchema: 'schemaName',
+ *     timeStamps: true,
+ *     useCS: false,
+ *     columns: [
+ *         {
+ *             name: 'fieldName',
+ *             type: 'dataType',
+ *             length: 255,
+ *             unique: false,
+ *             notNull: false,
+ *             primary: false,
+ *             default: 'value',
+ *             useDefault: false,
+ *         },
+ *     ],
+ *     foreignKeys: [
+ *         {
+ *             hasRelations: [{ name: 'field' }],
+ *             withColumns: [{ name: 'withField' }],
+ *             withTable: 'withTable',
+ *             onDeleteAction: 'action',
+ *             onUpdateAction: 'action',
+ *         },
+ *     ],
+ * };
+ */</code></pre>
         </article>
     </section>
 
@@ -308,7 +394,7 @@ module.exports = Model;
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Mon May 22 2023 15:46:25 GMT-0400 (Eastern Daylight Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Mon May 22 2023 19:06:00 GMT-0400 (Eastern Daylight Time)
 </footer>
 
 <script> prettyPrint(); </script>

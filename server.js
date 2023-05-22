@@ -22,7 +22,7 @@ const repositories = {
 }
 
 const connection = config.get('connection');
-const { db, pgp } = DB.init(connection, repositories);
+const db = DB.init(connection, repositories);
 
 //Test the connection
 db.connect()
@@ -106,12 +106,5 @@ app.delete('/delete/:idValue', (req, res) => {
         });
 });
 
-app.get('/test', (req, res) => {
-    const SQLFiles = require('./db/SQLFiles');
-    const sqlFiles = new SQLFiles(schema2);
-    sqlFiles.writeSQLFiles();
-    res.send('Write files');
-});
-
 // Start server
-app.listen(3000, console.log('Server listening on at http://localhost:3000'));
+app.listen(3000, () => console.log('Server listening at http://localhost:3000'));

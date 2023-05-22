@@ -95,7 +95,7 @@
             <td class="type">
             
                 
-<span class="param-type"><a href="DB.html">DB</a></span>
+<span class="param-type">Object</span>
 
 
             
@@ -105,7 +105,7 @@
 
             
 
-            <td class="description last"><p>Database connection</p></td>
+            <td class="description last"><p><a href="https://vitaly-t.github.io/pg-promise/Database.html">pg-promise</a> database connection represented by class <a href="DB.html"><code>DB</code></a></p></td>
         </tr>
 
     
@@ -192,7 +192,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line99">line 99</a>
+        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line12">line 12</a>
     </li></ul></dd>
     
 
@@ -287,7 +287,319 @@ SELECT [colmns] FROM tablename</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line127">line 127</a>
+        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line40">line 40</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="selectAll"><span class="type-signature"></span>selectAll<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    <p>Sets a new select all query string</p>
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line47">line 47</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="selectWhere"><span class="type-signature"></span>selectWhere<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    <p>The select where query is intially set to
+SELECT [colmns] FROM tablename WHERE [column] = value;</p>
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line57">line 57</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="selectWhere"><span class="type-signature"></span>selectWhere<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    <p>Sets a new select where query string</p>
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line64">line 64</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="updateCondition"><span class="type-signature"></span>updateCondition<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    <p>The update where query is intially set to
+WHERE [primaryKeyColumn] = value</p>
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line74">line 74</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="updateCondition"><span class="type-signature"></span>updateCondition<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    <p>Sets a new update where query string</p>
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line81">line 81</a>
     </li></ul></dd>
     
 
@@ -308,6 +620,196 @@ SELECT [colmns] FROM tablename</p>
 
     
         <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="createColumnsets"><span class="type-signature"></span>createColumnsets<span class="signature">()</span><span class="type-signature"> &rarr; {Object}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>This method is used to create a columnset by a derived class that is static. Using createColumnsets followed by
+setColumnsets ensures only a single instance of the derived class ColumnSet is created.  This is illustrated in
+the following example</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line279">line 279</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <ul>
+<li>pg-promise <a href="https://vitaly-t.github.io/pg-promise/helpers.ColumnSet.html">ColumnSet</a></li>
+</ul>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Object</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>userSchema = {
+     tableName: 'users',
+     columns: [
+         {
+             name: 'email',
+             type: 'varchar',
+             length: 255,
+             primary: true
+         },
+         {
+             name: 'password',
+             type: 'varchar',
+             length: 50,
+             notNull: true,
+         },
+         {
+             name: 'employee_id',
+             type: 'int4',
+             notNull: true,
+         },
+         {
+             name: 'full_name',
+             type: 'varchar',
+             length: 50,
+             notNull: true,
+         },
+         {
+             name: 'role',
+             type: 'varchar',
+             length: 25,
+             notNull: true,
+         },
+         {
+             name: 'active',
+             type: 'bool',
+             notNull: true,
+             default: true
+         },
+     ],
+     foreignKeys: [
+         {
+             hasRelations: [
+                 {
+                     name: 'employee_id',
+                 },
+             ],
+             withColumns: [
+                 {
+                     name: 'id',
+                 },
+             ],
+             withTable: 'employees',
+         },
+     ],
+ }; 
+ class Users extends Model {
+     static #cs; 
+     // Deep copy userSchema to ensure it does not change
+     constructor(db, pgp, schema = JSON.parse(JSON.stringify(userSchema))) { 
+         super(db, pgp, schema);
+         
+         // This ensures the column set is only created once for each User instance
+         if(!Users.#cs) {
+             Users.#cs = this.createColumnsets();
+             super.setColumnsets(Users.#cs);
+         }
+     } 
+     insert(dto) {
+         dto.email = dto.email.toLowerCase();
+         return super.insert(dto).catch( (err) => Promise.reject(err));
+     } 
+ }</code></pre>
+
+
 
         
             
@@ -367,7 +869,7 @@ SELECT [colmns] FROM tablename</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line243">line 243</a>
+        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line179">line 179</a>
     </li></ul></dd>
     
 
@@ -522,7 +1024,7 @@ SELECT [colmns] FROM tablename</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line174">line 174</a>
+        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line110">line 110</a>
     </li></ul></dd>
     
 
@@ -732,7 +1234,7 @@ SELECT [colmns] FROM tablename</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line187">line 187</a>
+        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line123">line 123</a>
     </li></ul></dd>
     
 
@@ -887,7 +1389,7 @@ SELECT [colmns] FROM tablename</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line164">line 164</a>
+        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line100">line 100</a>
     </li></ul></dd>
     
 
@@ -941,7 +1443,7 @@ SELECT [colmns] FROM tablename</p>
     
 
     
-    <h4 class="name" id="primaryKeyColumn"><span class="type-signature"></span>primaryKeyColumn<span class="signature">()</span><span class="type-signature"> &rarr; {string}</span></h4>
+    <h4 class="name" id="primaryKeyColumn"><span class="type-signature"></span>primaryKeyColumn<span class="signature">()</span><span class="type-signature"> &rarr; {string|null}</span></h4>
     
 
     
@@ -993,7 +1495,7 @@ SELECT [colmns] FROM tablename</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line155">line 155</a>
+        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line89">line 89</a>
     </li></ul></dd>
     
 
@@ -1022,7 +1524,9 @@ SELECT [colmns] FROM tablename</p>
 
         
 <div class="param-desc">
-    <p>Name of Tables PRIMAR KEY</p>
+    <ul>
+<li>Name of tables PRIMARY KEY</li>
+</ul>
 </div>
 
 
@@ -1034,6 +1538,9 @@ SELECT [colmns] FROM tablename</p>
     <dd>
         
 <span class="param-type">string</span>
+|
+
+<span class="param-type">null</span>
 
 
     </dd>
@@ -1155,7 +1662,7 @@ SELECT [colmns] FROM tablename</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line222">line 222</a>
+        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line158">line 158</a>
     </li></ul></dd>
     
 
@@ -1198,6 +1705,143 @@ SELECT [colmns] FROM tablename</p>
 </dl>
 
     
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="setColumnsets"><span class="type-signature"></span>setColumnsets<span class="signature">(cs)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Sets the statically created ColumnSet in the derived class in the base class</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>cs</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>pg-promise <a href="https://vitaly-t.github.io/pg-promise/helpers.ColumnSet.html">ColumnSet</a></p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line287">line 287</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1310,7 +1954,7 @@ SELECT [colmns] FROM tablename</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line203">line 203</a>
+        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line139">line 139</a>
     </li></ul></dd>
     
 
@@ -1359,6 +2003,118 @@ SELECT [colmns] FROM tablename</p>
 
 
         
+            
+
+    
+
+    
+    <h4 class="name" id="writeCreateTableFile"><span class="type-signature"></span>writeCreateTableFile<span class="signature">()</span><span class="type-signature"> &rarr; {Object}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Writes CREATE table SQL to an SQL file. This method is primarily for internal use</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line189">line 189</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <ul>
+<li><a href="http://vitaly-t.github.io/pg-promise/QueryFile.html">QueryFile</a> to execute the CREATE TABLE query</li>
+</ul>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Object</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
     
 
     
@@ -1380,7 +2136,7 @@ SELECT [colmns] FROM tablename</p>
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Mon May 22 2023 15:46:25 GMT-0400 (Eastern Daylight Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Mon May 22 2023 19:06:00 GMT-0400 (Eastern Daylight Time)
 </footer>
 
 <script> prettyPrint(); </script>
