@@ -3,7 +3,7 @@
 'use strict';
 
 class DB {
-    static init(connection, repos) {
+    static init(connection, repositories) {
         const pgPromise = require("pg-promise");
         const { Diagnostics } = require("./diagnostics"); // optional diagnostics
 
@@ -19,7 +19,9 @@ class DB {
                 //     obj.repository = new repositories[repository](obj, pgp);
                 // }
                 // Check if the pgp object is valid
-                repos(obj, pgp); // Call back to repositories
+                for (const repository of Object.keys(repositories)) {
+                    obj[repository] = new repositories[repository](obj, pgp);
+                  }
             },
         }; 
         

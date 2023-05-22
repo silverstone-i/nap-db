@@ -16,13 +16,13 @@ const app = express();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
-// Callback to extend database with app specific repositories
-const repos = (db, pgp) => {
-    db.users = new Users(db, pgp);
-};
+// repositories in the database
+const repositories = {
+    users: Users,
+}
 
 const connection = config.get('connection');
-const { db, pgp } = DB.init(connection, repos);
+const { db, pgp } = DB.init(connection, repositories);
 
 //Test the connection
 db.connect()
