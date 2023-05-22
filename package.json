@@ -4,6 +4,7 @@
   "description": "",
   "main": "server.js",
   "scripts": {
+    "doc": "jsdoc -c jsdoc.json",
     "test": "Mocha",
     "start": "nodemon server.js"
   },
@@ -18,6 +19,7 @@
   },
   "devDependencies": {
     "chai": "^4.3.7",
+    "jsdoc": "^4.0.2",
     "mocha": "^10.2.0",
     "sinon": "^15.0.4"
   }

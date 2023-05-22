@@ -16,7 +16,7 @@ const app = express();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
-// repositories in the database
+// repositories in the databa
 const repositories = {
     users: Users,
 }
