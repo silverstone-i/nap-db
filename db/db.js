@@ -59,7 +59,7 @@ class DB {
     static init(connection, repositories) {
         if(!DB.db) {
         const pgPromise = require("pg-promise");
-        const { Diagnostics } = require("./diagnostics"); // optional diagnostics
+        const { Diagnostics } = require("./diagnostics"); // optional diagnostic
 
         const initOptions = {
             capSQL: true, // capitalize all generated SQL

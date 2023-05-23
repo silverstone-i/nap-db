@@ -2,7 +2,7 @@
 // Users.js
 // users tabel model
 
-const Model = require('./db/Model');    
+const Model = require('./db/Model');
 
 userSchema = {
     tableName: 'users',
@@ -11,7 +11,7 @@ userSchema = {
             name: 'email',
             type: 'varchar',
             length: 255,
-            primary: true
+            primary: true,
         },
         {
             name: 'password',
@@ -40,7 +40,7 @@ userSchema = {
             name: 'active',
             type: 'bool',
             notNull: true,
-            default: true
+            default: true,
         },
     ],
     foreignKeys: [
@@ -64,20 +64,19 @@ class Users extends Model {
     static #cs;
 
     // Deep copy userSchema to ensure it does not change
-    constructor(db, pgp, schema = JSON.parse(JSON.stringify(userSchema))) { 
+    constructor(db, pgp, schema = JSON.parse(JSON.stringify(userSchema))) {
         super(db, pgp, schema);
-        
-        if(!Users.#cs) Users.#cs = this.createColumnsets();
-        super.setColumnsets(Users.#cs);
+
+        if (!Users.#cs) {
+            Users.#cs = this.createColumnsets();
+            super.setColumnsets(Users.#cs);
+        }
     }
 
     insert(dto) {
         dto.email = dto.email.toLowerCase();
-        return super.insert(dto)
-            .catch( (err) => Promise.reject(err));
+        return super.insert(dto).catch((err) => Promise.reject(err));
     }
-
 }
 
 module.exports = Users;
-
