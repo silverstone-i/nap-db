@@ -4,7 +4,7 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "doc": "jsdoc -c jsdoc.json",
+    "doc": "jsdoc -c jsdoc.json README.md",
     "test": "Mocha",
     "start": "nodemon server.js"
   },
