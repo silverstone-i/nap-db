@@ -125,12 +125,11 @@ function createColumnsets(pgp, schema) {
     });
 
     const cs = {};
-    const csTable = `cs.${schema.tableName}`;
     cs[schema.tableName] = new pgp.helpers.ColumnSet(columns, { table: table });
 
-    cs.insert = cs.users.extend([`${timeStamps[1].name}`]);
+    cs.insert = cs[schema.tableName].extend([`${timeStamps[1].name}`]);
 
-    cs.update = cs.users.extend([
+    cs.update = cs[schema.tableName].extend([
         {
             name: `${timeStamps[2].name}`,
             mod: '^',
@@ -140,21 +139,6 @@ function createColumnsets(pgp, schema) {
     ]);
 
     return cs;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// TODO:  Complete test and intgrate function
-function enumSql() {
-    const sqlPath = join(__dirname, `sql/${this.schema.tableName}`);
-    const result = pgp.utils.enumSql(
-        sqlPath,
-        { recursive: true },
-        (file, fileName, path) => {
-            return sqlQueryFile(file);
-        }
-    );
-
-    return result;
 }
 
 module.exports = {
