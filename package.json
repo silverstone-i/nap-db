@@ -8,6 +8,16 @@
     "test": "Mocha",
     "start": "nodemon server.js"
   },
+  "homepage": "https://github.com/silverstone-i/nap-db",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/silverstone-i/nap-db"
+  },
+  "bugs": {
+    "url": "https://github.com/silverstone-i/nap-db/issues",
+    "email": "ian@isilverstone.com"
+  },
+
   "keywords": [
     "pg-promise",
     "PostgreSQL",
