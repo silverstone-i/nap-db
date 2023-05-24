@@ -19,6 +19,7 @@ npm instal nap-db
 This module offers 2 classes
 
 class DB - initialize database
+
 class Model - CRUD and table mapping
 
 ## Usage Examples
