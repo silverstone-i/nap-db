@@ -1,6 +1,6 @@
 {
   "name": "nap-db",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Map db tables to javascript class",
   "main": "index.js",
   "scripts": {
@@ -17,7 +17,6 @@
     "url": "https://github.com/silverstone-i/nap-db/issues",
     "email": "ian@isilverstone.com"
   },
-
   "keywords": [
     "pg-promise",
     "PostgreSQL",
