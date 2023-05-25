@@ -51,18 +51,20 @@ class SqlFileWriter {
     }
 
     writeSqlFile(fileName, sqlScript) {
-        // Get module directory
-        const baseDirectory = __dirname;
-        const sqlDirectory = path.join(baseDirectory, 'sql');
+        // Get project directory
+        const baseDirectory = process.cwd();
+        const dbDirectory = path.join(baseDirectory, 'db');
+        if (!fs.existsSync(dbDirectory)) fs.mkdirSync(dbDirectory);
+        const sqlDirectory = path.join(dbDirectory, 'sql');
         if (!fs.existsSync(sqlDirectory)) fs.mkdirSync(sqlDirectory);
         const repoDirectory = path.join(
             sqlDirectory,
             this.schema.tableName.toLowerCase()
         );
         if (!fs.existsSync(repoDirectory)) fs.mkdirSync(repoDirectory);
+        const createPath = path.join(repoDirectory, `${fileName}.sql`);
 
         // Write file
-        const createPath = path.join(repoDirectory, `${fileName}.sql`);
         return new Promise((resolve, reject) => {
             fs.writeFile(createPath, sqlScript, (err) => {
                 if (err) {
