@@ -1,6 +1,7 @@
 <div style="display: flex; justify-content: left;">
-<img src="https://raw.githubusercontent.com/silverstone-i/nap/main/views/images/nap-logo.png" height="15%" width="15%">
+<img width="150" alt="nap-logo" src="https://github.com/silverstone-i/nap-db/assets/131495749/e81bf045-1102-4033-b7d9-22d966653e8d">
 </div>
+
 
 ## Motivation
 
