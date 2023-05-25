@@ -7,7 +7,19 @@
  * @classdesc Represents a pg_promise {@link https://vitaly-t.github.io/pg-promise/Database.html database} connection.
  */
 class DB {
+    /**
+     * 
+     * @member {DB} DB.db - Instance of pg-promise {@link https://vitaly-t.github.io/pg-promise/Database.html Database}
+     */
     static db;
+
+    /**
+     * 
+     * @member {Object} DB.pgp - {@link https://vitaly-t.github.io/pg-promise/module-pg-promise.html pg-promise} instance
+     */
+   
+    static pgp;
+
     /**
      * static function used for one time intialization of DB
      * @param {string|Object} connection - Database connection - see {@link https://github.com/vitaly-t/pg-promise/wiki/Connection-Syntax Connection Syntax} 
@@ -80,10 +92,10 @@ class DB {
         }; 
         
         // Initializing the library:
-        const pgp = pgPromise(initOptions);
+        DB.pgp = pgPromise(initOptions);
         
         // Creating the database instance:
-        DB.db = pgp(connection);
+        DB.db = DB.pgp(connection);
 
         // Initializing optional diagnostics:
         Diagnostics.init(initOptions);

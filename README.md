@@ -13,7 +13,7 @@ Need a simple way to map database tables to a DTO for an Expressjs prototype pro
 
 ## Install
 
-npm instal nap-db
+npm i nap-db
 
 ## Usage
 
