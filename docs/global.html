@@ -94,6 +94,154 @@
     
 
     
+        <h3 class="subsection-title">Members</h3>
+
+        
+            
+<h4 class="name" id="dataSchema"><span class="type-signature">(constant) </span>dataSchema<span class="type-signature"> :<a href="global.html#DataSchema">DataSchema</a></span></h4>
+
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type"><a href="global.html#DataSchema">DataSchema</a></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="table-schema.js.html">table-schema.js</a>, <a href="table-schema.js.html#line77">line 77</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="dto"><span class="type-signature">(constant) </span>dto<span class="type-signature"> :<a href="global.html#DTO">DTO</a></span></h4>
+
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type"><a href="global.html#DTO">DTO</a></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="table-schema.js.html">table-schema.js</a>, <a href="table-schema.js.html#line118">line 118</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>const dto = {
+   column1: 'columnValue1',
+   column2: 'columnValue2',
+}</code></pre>
+
+
+
+        
+    
 
     
 
@@ -302,37 +450,6 @@
 
         <tr>
             
-                <td class="name"><code>primary</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">boolean</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-                </td>
-            
-
-            
-
-            <td class="description last"><p>Indicates whether the column is a primary key.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
                 <td class="name"><code>default</code></td>
             
 
@@ -415,6 +532,8 @@
     
 
     
+        <dt class="important tag-deprecated">Deprecated:</dt><dd><ul class="dummy"><li>{boolean} [primary] - [DEPRECATED for versions > v0.3.0] Indicates whether the column is a primary key.</li></ul></dd>
+    
 
     
 
@@ -427,7 +546,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line295">line 295</a>
+        <a href="table-schema.js.html">table-schema.js</a>, <a href="table-schema.js.html#line4">line 4</a>
     </li></ul></dd>
     
 
@@ -445,10 +564,14 @@
 
             
                 
-<h4 class="name" id="ForeignKey">ForeignKey</h4>
+<h4 class="name" id="DTO">DTO</h4>
 
 
 
+
+<div class="description">
+    <p>Data Transfer Object used to interact with data models</p>
+</div>
 
 
 
@@ -462,150 +585,6 @@
         </li>
     </ul>
 
-
-
-
-
-    <h5 class="subsection-title">Properties:</h5>
-
-    
-
-<table class="props">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>hasRelations</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Array.&lt;string></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The columns used to link the foreign to the withTable</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>withColumns</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Array.&lt;string></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The array of related columns.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>withTable</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The name of the table being referenced.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>onDeleteAction</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The action to perform on deletion.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>onUpdateAction</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The action to perform on update.</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
 
 
 
@@ -639,7 +618,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line306">line 306</a>
+        <a href="table-schema.js.html">table-schema.js</a>, <a href="table-schema.js.html#line106">line 106</a>
     </li></ul></dd>
     
 
@@ -657,7 +636,7 @@
 
             
                 
-<h4 class="name" id="TableSchema">TableSchema</h4>
+<h4 class="name" id="DataSchema">DataSchema</h4>
 
 
 
@@ -766,7 +745,7 @@
 
             
 
-            <td class="description last"><p>Indicates whether timestamps are enabled.</p></td>
+            <td class="description last"><p>Indicates whether to include timestamps in the table.</p></td>
         </tr>
 
     
@@ -789,7 +768,7 @@
 
             
 
-            <td class="description last"><p>Indicates whether to use case-sensitive column names.</p></td>
+            <td class="description last"><p>Indicates whether to use case sensitivity.</p></td>
         </tr>
 
     
@@ -812,7 +791,30 @@
 
             
 
-            <td class="description last"><p>The array of column objects.</p></td>
+            <td class="description last"><p>The columns of the table.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>primaryKeys</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array.&lt;<a href="global.html#PrimaryKey">PrimaryKey</a>></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The primary keys of the table.</p></td>
         </tr>
 
     
@@ -835,7 +837,7 @@
 
             
 
-            <td class="description last"><p>The array of foreign key objects.</p></td>
+            <td class="description last"><p>The foreign keys of the table.</p></td>
         </tr>
 
     
@@ -874,7 +876,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line315">line 315</a>
+        <a href="table-schema.js.html">table-schema.js</a>, <a href="table-schema.js.html#line32">line 32</a>
     </li></ul></dd>
     
 
@@ -891,33 +893,414 @@
 
     <h5>Example</h5>
     
-    <pre class="prettyprint"><code>const tableSchema = {
-    tableName: 'tableName',
-    dbSchema: 'schemaName',
-    timeStamps: true,
-    useCS: false,
-    columns: [
-        {
-            name: 'fieldName',
-            type: 'dataType',
-            length: 255,
-            unique: false,
-            notNull: false,
-            primary: false,
-            default: 'value',
-            useDefault: false,
-        },
-    ],
-    foreignKeys: [
-        {
-            hasRelations: [{ name: 'field' }],
-            withColumns: [{ name: 'withField' }],
-            withTable: 'withTable',
-            onDeleteAction: 'action',
-            onUpdateAction: 'action',
-        },
-    ],
-};</code></pre>
+    <pre class="prettyprint"><code>...
+ const dataSchema = {
+     tableName: 'string',
+     dbSchema: 'string',
+     timeStamps: true,
+     useCS: true,
+     columns: [
+         {
+             name: 'string',
+             type: 'string',
+             length: 10,
+             unique: false,
+             notNull: true,
+             primary: false,
+             default: 'default value',
+             useDefault: true,
+         },
+     ],
+     primaryKeys: [{ name: 'column1' }, { name: 'column2' }],
+     foreignKeys: [
+         {
+             hasRelations: [{ name: 'relation1' }, { name: 'relation2' }],
+             withColumns: [{ name: 'column1' }, { name: 'column2' }],
+             withTable: 'relatedTable',
+             onDeleteAction: 'action1',
+             onUpdateAction: 'action2',
+         },
+     ],
+ };
+...</code></pre>
+
+
+
+            
+                
+<h4 class="name" id="ForeignKey">ForeignKey</h4>
+
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>hasRelations</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array.&lt;Object></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The relations associated with the foreign key.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>hasRelations[].name</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The name of a relation associated with the foreign key.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>withColumns</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array.&lt;Object></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The columns associated with the foreign key.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>withColumns[].name</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The name of a column associated with the foreign key.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>withTable</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The name of the table referenced by the foreign key.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>onDeleteAction</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The action to perform on deletion of a referenced row.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>onUpdateAction</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The action to perform on updating a referenced row.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="table-schema.js.html">table-schema.js</a>, <a href="table-schema.js.html#line16">line 16</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+            
+                
+<h4 class="name" id="PrimaryKey">PrimaryKey</h4>
+
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>name</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The name of a column acting as a primary key.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="table-schema.js.html">table-schema.js</a>, <a href="table-schema.js.html#line27">line 27</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
 
 
 
@@ -935,13 +1318,13 @@
 </div>
 
 <nav>
-    <h2><a href="index.html">nap</a></h2><h3>Classes</h3><ul><li><a href="DB.html">DB</a></li><li><a href="Model.html">Model</a></li></ul><h3><a href="global.html">Global</a></h3>
+    <h2><a href="index.html">nap-db</a></h2><h3>Classes</h3><ul><li><a href="DB.html">DB</a></li><li><a href="Model.html">Model</a></li></ul><h3>Global</h3><ul><li><a href="global.html#dataSchema">dataSchema</a></li><li><a href="global.html#dto">dto</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Wed May 31 2023 03:55:52 GMT-0400 (Eastern Daylight Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Fri Jun 02 2023 02:33:39 GMT-0400 (Eastern Daylight Time)
 </footer>
 
 <script> prettyPrint(); </script>

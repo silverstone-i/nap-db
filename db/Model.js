@@ -14,7 +14,7 @@ class Model {
      * Creates a new Model
      * @param {Object} db - {@link https://vitaly-t.github.io/pg-promise/Database.html pg-promise} database connection represented by class {@link DB}
      * @param {Object} pgp - {@link https://vitaly-t.github.io/pg-promise/module-pg-promise.html pg-promise} object
-     * @param {TableSchema} schema - Table schema to map columns
+     * @param {DataSchema} schema - Table schema to map columns
      */
     constructor(db, pgp, schema) {
         this.schema = schema;
@@ -290,64 +290,3 @@ class Model {
 }
 
 module.exports = Model;
-
-
-/**
- * @typedef {Object} Column
- * @property {!string} name - The name of the column.
- * @property {!string} type - The data type of the column. Must be 'char' for length to be required.
- * @property {number} [length] - The length of the column (required if type is 'char').
- * @property {boolean} [unique] - Indicates whether the column values must be unique.
- * @property {boolean} [notNull] - Indicates whether the column can have null values.
- * @property {boolean} [primary] - Indicates whether the column is a primary key.
- * @property {string} [default] - The default value for the column.
- * @property {boolean} [useDefault] - Indicates whether to use the default value for the column.
- */
-/**
- * @typedef {Object} ForeignKey
- * @property {Array<string>} hasRelations - The columns used to link the foreign to the withTable
- * @property {Array<string>} withColumns - The array of related columns.
- * @property {string} withTable - The name of the table being referenced.
- * @property {string} onDeleteAction - The action to perform on deletion.
- * @property {string} onUpdateAction - The action to perform on update.
- */
-
-/**
- * @typedef {Object} TableSchema
- * @property {string} tableName - The name of the table.
- * @property {string} dbSchema - The name of the database schema.
- * @property {boolean} timeStamps - Indicates whether timestamps are enabled.
- * @property {boolean} useCS - Indicates whether to use case-sensitive column names.
- * @property {Array<Column>} columns - The array of column objects.
- * @property {Array<ForeignKey>} foreignKeys - The array of foreign key objects.
- * 
- * @example
- *
- * const tableSchema = {
- *     tableName: 'tableName',
- *     dbSchema: 'schemaName',
- *     timeStamps: true,
- *     useCS: false,
- *     columns: [
- *         {
- *             name: 'fieldName',
- *             type: 'dataType',
- *             length: 255,
- *             unique: false,
- *             notNull: false,
- *             primary: false,
- *             default: 'value',
- *             useDefault: false,
- *         },
- *     ],
- *     foreignKeys: [
- *         {
- *             hasRelations: [{ name: 'field' }],
- *             withColumns: [{ name: 'withField' }],
- *             withTable: 'withTable',
- *             onDeleteAction: 'action',
- *             onUpdateAction: 'action',
- *         },
- *     ],
- * };
- */
