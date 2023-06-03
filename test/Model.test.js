@@ -1,3 +1,5 @@
+// @ts-nocheck
+/* eslint-disable no-undef */
 // test/Model.test.js
 const { expect } = require('chai');
 const sinon = require('sinon');
@@ -75,19 +77,31 @@ describe('Model Testing', () => {
                     default: true,
                 },
             ],
+            primaryKeys: [
+                { name: 'email'},
+                { name: 'password'}
+            ],
             foreignKeys: [
                 {
                     hasRelations: [
                         {
                             name: 'employee_id',
                         },
+                        {
+                            name: 'password'
+                        },
                     ],
                     withColumns: [
                         {
                             name: 'id',
                         },
+                        {
+                            name: 'employee'
+                        },
                     ],
                     withTable: 'employees',
+                    onDeleteAction: 'CASCADE',
+                    onUpdateAction: 'CASCADE',
                 },
             ],
         };
@@ -181,7 +195,7 @@ describe('Model Testing', () => {
 
     it('should format the prepared statement correctly for CREATE TABLE', async () => {
         // const insertQuery = `INSERT INTO users (email, password, employee_id, full_name, role, created_by, last_modified_by) VALUES ($[email], $[password], $[employee_id], $[full_name], $[role], $[created_by], $[last_modified_by]);`
-        const expectedQuery = `CREATE TABLE users ( email varchar(255) PRIMARY KEY, password varchar(50) NOT NULL, employee_id int4 NOT NULL, full_name varchar(50) NOT NULL, role varchar(25) NOT NULL, active bool NOT NULL DEFAULT true, created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP, created_by varchar(50) NOT NULL, updated_at timestamptz, updated_by varchar(50), FOREIGN KEY (employee_id) REFERENCES employees(id) );`;
+        const expectedQuery = `CREATE TABLE users ( email varchar(255), password varchar(50) NOT NULL, employee_id int4 NOT NULL, full_name varchar(50) NOT NULL, role varchar(25) NOT NULL, active bool NOT NULL DEFAULT true, created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP, created_by varchar(50) NOT NULL, updated_at timestamptz, updated_by varchar(50), PRIMARY KEY (email, password), FOREIGN KEY (employee_id, password) REFERENCES employees(id, employee) ON DELETE CASCADE ON UPDATE CASCADE );`;
 
         // Create a spy for writeCreateTableFile and mock the return value
         const writeCreateTableFileSpy = sinon.spy(

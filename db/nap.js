@@ -40,9 +40,11 @@ class SqlFileWriter {
     writeCreateTableSQL(fileName) {
         const tableScript =
             `CREATE TABLE ${this.schema.tableName} (\n` +
-            _buildTableColumns(this.schema.columns).slice(0, -2) +
-            _buildForeignKeys(this.schema.foreignKeys).slice(0, -2) +
+            _buildTableColumns(this.schema.columns, this.schema.primaryKeys) +
+            _buildPrimaryKeys(this.schema.primaryKeys) +
+            _buildForeignKeys(this.schema.foreignKeys) +
             '\n);';
+
         if (!fileName) fileName = 'create';
 
         return this.writeSqlFile(fileName, tableScript)
@@ -154,19 +156,31 @@ module.exports = {
 // Helpers to implement the utility functions
 
 // Builde create table column string
-function _buildTableColumns(columns) {
+function _buildTableColumns(columns, hasPRIMARYKEY = false) {
     return columns.reduce((str, column) => {
         str += column.name;
         str += ' ' + column.type;
         if (column.length) str += '(' + column.length + ')';
         if (column.unique) str += ' UNIQUE';
         if (column.notNull) str += ' NOT NULL';
-        if (column.primary) str += ' PRIMARY KEY';
+        if (column.primary && !hasPRIMARYKEY) str += ' PRIMARY KEY';
         if (column.default) str += ` DEFAULT ${column.default}`;
         str += ',\n';
 
         return str;
-    }, '');
+    }, '').slice(0, -2);
+}
+
+// Build create table primary keys
+function _buildPrimaryKeys(keys) {
+    if(!keys) return '';
+    console.log('BUILDING PRIMARY KEYS');
+
+    return keys.reduce((str, key) => {
+        str += `${key.name}, `
+
+        return str;
+    }, ',\nPRIMARY KEY (').slice(0, -2) + ')';
 }
 
 // Build create table foreign keys
@@ -181,10 +195,9 @@ function _buildForeignKeys(keys) {
             )}`;
         if (key.onDeleteAction) str += ` ON DELETE ${key.onDeleteAction}`;
         if (key.onUpdateAction) str += ` ON UPDATE ${key.onUpdateAction}`;
-        str += `,\n`;
 
-        return ',\n' + str;
-    }, '');
+        return str;
+    }, ',\n');
 }
 
 // Build create table foreign key column relationship

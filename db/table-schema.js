@@ -8,9 +8,9 @@
  * @property {number} [length] - The length of the column (required if type is 'char').
  * @property {boolean} [unique] - Indicates whether the column values must be unique.
  * @property {boolean} [notNull] - Indicates whether the column can have null values.
- * @deprecated {boolean} [primary] - [DEPRECATED for versions > v0.3.0] Indicates whether the column is a primary key.
  * @property {string} [default] - The default value for the column.
  * @property {boolean} [useDefault] - Indicates whether to use the default value for the column.
+ * @deprecated {boolean} [primary] - [DEPRECATED for versions > v0.3.0] Indicates whether the column is a primary key.
  */
 
 /**
@@ -32,12 +32,12 @@
 /**
  * @typedef {Object} DataSchema
  * @property {string} tableName - The name of the table.
- * @property {string} dbSchema - The name of the database schema.
- * @property {boolean} timeStamps - Indicates whether to include timestamps in the table.
- * @property {boolean} useCS - Indicates whether to use case sensitivity.
+ * @property {string} [dbSchema] - The name of the database schema.
+ * @property {boolean} [timeStamps] - Indicates whether to include timestamps in the table.
+ * @property {boolean} [useCS] - Indicates whether to use case sensitivity.
  * @property {Column[]} columns - The columns of the table.
  * @property {PrimaryKey[]} primaryKeys - The primary keys of the table.
- * @property {ForeignKey[]} foreignKeys - The foreign keys of the table.
+ * @property {ForeignKey[]} [foreignKeys] - The foreign keys of the table.
  * @example
  * ...
  *  const dataSchema = {
@@ -86,7 +86,6 @@ const dataSchema = {
             length: 10,
             unique: false,
             notNull: true,
-            primary: false,
             default: 'default value',
             useDefault: true,
         },

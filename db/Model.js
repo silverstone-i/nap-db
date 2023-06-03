@@ -3,9 +3,8 @@
 'use strict';
 
 const { SqlFileWriter, createColumnsets, timeStamps } = require('./nap');
+const packageJson = require('../package.json');
 
-
-  
 /**
  * Base class used to map columns in a database table
  */
@@ -84,12 +83,24 @@ class Model {
 
     /**
      * Get primary key column name
-     * @returns {string|null} - Name of tables PRIMARY KEY
+     * @returns {string|null|PrimaryKey[]} - Name of tables PRIMARY KEY
      */
     primaryKeyColumn() {
+        if (!this.schema.primaryKeys) {
+            // version of library that is <= v0.3.0
+            const primaryKeyColumn = this.schema.columns.find(
+                // @ts-ignore
+                (column) => column.primary
+            );
 
-        const primaryKeyColumn = this.schema.columns.find((column) => column.primary);
-        return primaryKeyColumn ? primaryKeyColumn.name : null;
+            return primaryKeyColumn ? primaryKeyColumn.name : null;
+        } else if (this.schema.primaryKeys.length === 1) {
+            // Replicates behavior of single primary key prior to v0.4.0
+            return this.schema.primaryKeys[0].name;
+        }
+
+        // multiple PRIMARY KEY columns
+        return this.schema.primaryKeys;
     }
 
     /**
@@ -130,7 +141,6 @@ class Model {
         return this.db.oneOrNone(query).catch((err) => Promise.reject(err));
     }
 
- 
     /**
      * Update record crUd
      * @param {Object} dto - Data Transfer Object specifying the fields to be updated
@@ -171,6 +181,19 @@ class Model {
             .catch((err) => Promise.reject(err));
     }
 
+    // Execute query string
+    /**
+     * Executes provided query string - This method is not safe and is intended for reporting
+     * Make sure the query string is properly validated and sanitized so the database is not corrupted
+     * @param {string} queryString - SQL to be executed
+     */
+    executeQuery(queryString) {
+        this.db
+            .any(queryString)
+            .then((dto) => dto)
+            .catch((err) => Promise.reject(err));
+    }
+
     // Create table
     /**
      * Builds the SQL required to CREATE TABLE based on the {@link TableSchema}
@@ -202,7 +225,7 @@ class Model {
      * setColumnsets ensures only a single instance of the derived class ColumnSet is created.  This is illustrated in
      * the following example
      * @example
-     * 
+     *
      * userSchema = {
      *      tableName: 'users',
      *      columns: [
@@ -257,23 +280,23 @@ class Model {
      *              withTable: 'employees',
      *          },
      *      ],
-     *  }; 
+     *  };
      *  class Users extends Model {
-     *      static #cs; 
+     *      static #cs;
      *      // Deep copy userSchema to ensure it does not change
-     *      constructor(db, pgp, schema = JSON.parse(JSON.stringify(userSchema))) { 
+     *      constructor(db, pgp, schema = JSON.parse(JSON.stringify(userSchema))) {
      *          super(db, pgp, schema);
-     *          
+     *
      *          // This ensures the column set is only created once for each User instance
      *          if(!Users.#cs) {
      *              Users.#cs = this.createColumnsets();
      *              super.setColumnsets(Users.#cs);
      *          }
-     *      } 
+     *      }
      *      insert(dto) {
      *          dto.email = dto.email.toLowerCase();
      *          return super.insert(dto).catch( (err) => Promise.reject(err));
-     *      } 
+     *      }
      *  }
      */
     createColumnsets() {
