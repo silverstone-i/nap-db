@@ -174,7 +174,6 @@ function _buildTableColumns(columns, hasPRIMARYKEY = false) {
 // Build create table primary keys
 function _buildPrimaryKeys(keys) {
     if(!keys) return '';
-    console.log('BUILDING PRIMARY KEYS');
 
     return keys.reduce((str, key) => {
         str += `${key.name}, `

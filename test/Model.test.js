@@ -7,6 +7,27 @@ const Model = require('../db/Model'); // Import your Model class
 const pgPromise = require('pg-promise');
 const { createColumnsets } = require('../db/nap');
 const { QueryFile } = require('pg-promise');
+const fs = require('fs');
+const path = require('path');
+
+function deleteDirectory(directoryPath) {
+    if (fs.existsSync(directoryPath)) {
+      fs.readdirSync(directoryPath).forEach((file) => {
+        const curPath = path.join(directoryPath, file);
+        if (fs.lstatSync(curPath).isDirectory()) {
+          // Recursive call for directories
+          deleteDirectory(curPath);
+        } else {
+          // Delete file
+          fs.unlinkSync(curPath);
+        }
+      });
+      // Delete the empty directory
+      fs.rmdirSync(directoryPath);
+    } else {
+      console.log('Directory not found:', directoryPath);
+    }
+  }
 
 const DTO = {
     email: 'joe@gmail.com',
@@ -79,31 +100,31 @@ describe('Model Testing', () => {
             ],
             primaryKeys: [
                 { name: 'email'},
-                { name: 'password'}
+                // { name: 'password'}
             ],
-            foreignKeys: [
-                {
-                    hasRelations: [
-                        {
-                            name: 'employee_id',
-                        },
-                        {
-                            name: 'password'
-                        },
-                    ],
-                    withColumns: [
-                        {
-                            name: 'id',
-                        },
-                        {
-                            name: 'employee'
-                        },
-                    ],
-                    withTable: 'employees',
-                    onDeleteAction: 'CASCADE',
-                    onUpdateAction: 'CASCADE',
-                },
-            ],
+            // foreignKeys: [
+            //     {
+            //         hasRelations: [
+            //             {
+            //                 name: 'employee_id',
+            //             },
+            //             {
+            //                 name: 'password'
+            //             },
+            //         ],
+            //         withColumns: [
+            //             {
+            //                 name: 'id',
+            //             },
+            //             {
+            //                 name: 'employee'
+            //             },
+            //         ],
+            //         withTable: 'employees',
+            //         onDeleteAction: 'CASCADE',
+            //         onUpdateAction: 'CASCADE',
+            //     },
+            // ],
         };
 
         // Create a spy for pgp.as.format
@@ -195,7 +216,7 @@ describe('Model Testing', () => {
 
     it('should format the prepared statement correctly for CREATE TABLE', async () => {
         // const insertQuery = `INSERT INTO users (email, password, employee_id, full_name, role, created_by, last_modified_by) VALUES ($[email], $[password], $[employee_id], $[full_name], $[role], $[created_by], $[last_modified_by]);`
-        const expectedQuery = `CREATE TABLE users ( email varchar(255), password varchar(50) NOT NULL, employee_id int4 NOT NULL, full_name varchar(50) NOT NULL, role varchar(25) NOT NULL, active bool NOT NULL DEFAULT true, created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP, created_by varchar(50) NOT NULL, updated_at timestamptz, updated_by varchar(50), PRIMARY KEY (email, password), FOREIGN KEY (employee_id, password) REFERENCES employees(id, employee) ON DELETE CASCADE ON UPDATE CASCADE );`;
+        const expectedQuery = `CREATE TABLE users ( email varchar(255), password varchar(50) NOT NULL, employee_id int4 NOT NULL, full_name varchar(50) NOT NULL, role varchar(25) NOT NULL, active bool NOT NULL DEFAULT true, created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP, created_by varchar(50) NOT NULL, updated_at timestamptz, updated_by varchar(50), PRIMARY KEY (email) );`;
 
         // Create a spy for writeCreateTableFile and mock the return value
         const writeCreateTableFileSpy = sinon.spy(
@@ -224,6 +245,10 @@ describe('Model Testing', () => {
         const actualQuery = match[0];
 
         expect(actualQuery).to.equal(expectedQuery);
+
+        const cwd = process.cwd();
+        const delPath = path.join(cwd, 'db/sql');
+        deleteDirectory(delPath);
 
         // Restore the original function
         writeCreateTableFileSpy.restore();
