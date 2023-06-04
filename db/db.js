@@ -4,7 +4,7 @@
 
 /**
  * @class DB
- * @classdesc Represents a pg_promise {@link https://vitaly-t.github.io/pg-promise/Database.html database} connection.
+ * @classdesc Represents a pg_promise {@link https://vitaly-t.github.io/pg-promise/Database.html Database} connection.
  */
 class DB {
     /**
@@ -86,7 +86,7 @@ class DB {
                 // }
                 // Check if the pgp object is valid
                 for (const repository of Object.keys(repositories)) {
-                    obj[repository] = new repositories[repository](obj, pgp);
+                    obj[repository] = new repositories[repository](obj, DB.pgp);
                   }
             },
         }; 

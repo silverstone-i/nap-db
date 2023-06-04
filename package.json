@@ -1,6 +1,6 @@
 {
   "name": "nap-db",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Map db tables to javascript class",
   "main": "index.js",
   "scripts": {

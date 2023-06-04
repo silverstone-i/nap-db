@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Model.js
 // Base class for implementing CRUD interface to database
 'use strict';
@@ -114,6 +115,7 @@ class Model {
     }
 
     /**
+     * @deprecated
      * Read records cRud
      * @param {Object} dto - Data Transfer Object specifying the fields to be selected
      * @returns {Array<Object>} - Array of rows selected or 'Records not found' message
@@ -125,6 +127,7 @@ class Model {
     }
 
     /**
+     * @deprecated
      * Locate a specific record - cRud
      * @param {Object} dto - Data Transfer Object specifying the fields to be selected
      * @param {string} column - the name of the column used to locate the record
@@ -138,17 +141,63 @@ class Model {
             value,
         ]);
 
-        return this.db.oneOrNone(query).catch((err) => Promise.reject(err));
+        return this.db.any(query).catch((err) => Promise.reject(err));
     }
 
     /**
-     * Update record crUd
+     * Performs a SELECT statement based on the information in the DTO object
+     * @list - DTO
+     * - Columns to be returned by the select statement
+     * - _condition - search condition i.e. WHERE clause - string
+     * - _params - parameters associated with _condition - Array 
+     * @param {DTO} dto
+     * @returns {Array<Object>|string} - returns an array of rows found a single row or an error message
+     * @example 
+     * ...
+     * const dto = {
+     *      "company_id": "",
+     *      "account_id": "",
+     *      "name": "",
+     *      "_condition": "WHERE company_id = $1 AND account_id = $2;"
+     *      "_params": [ '000', '1.1.1000']
+     * }
+     * Produces 
+     *  SELECT "company_id", "account_id", "name" FROM accounts WHERE company_id = '000' AND account_id = '1.1.1000';
+     */
+    find(dto) {
+        // Modify the params string to valid JSON format
+        // Modify params and extract the array from dto._params
+        let condition = '';
+        if (dto._condition && dto._params) {
+            const paramsArray = JSON.parse(dto._params.replace(/'/g, '"'));
+            condition = this.pgp.as.format(dto._condition, paramsArray);
+        }
+
+        // delete properties
+        if (dto._condition) delete dto._condition;
+        if (dto._params) delete dto._params;
+
+        const query =
+            this.pgp.as.format(
+                `select $1:name from ${this.schema.tableName} `,
+                [dto]
+            ) + condition;
+        console.log(query);
+
+        return this.db.any(query).catch((err) => Promise.reject(err));
+    }
+
+    /**
+     * Update record crUd - this will not work for multi-column primary keys
      * @param {Object} dto - Data Transfer Object specifying the fields to be updated
      * @returns {void}
      */
     update(dto) {
         const condition = this.pgp.as.format(this._updateCondition, dto);
+        console.log(query);
+
         const query = this.pgp.helpers.update(dto, this.cs.update) + condition;
+
         return this.db
             .result(query)
             .then((result) => {

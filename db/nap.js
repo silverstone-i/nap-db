@@ -104,11 +104,14 @@ function sqlQueryFile(file) {
 //////////////////////////////////////////////////////////////////////////////////////////
 // Create columnsets to be used with a schema
 function createColumnsets(pgp, schema) {
+    // Creat an array of primary key names
+    const pkColumns = primaryKeyNames(schema);
+
     // Create the columnset data array
     const columns = JSON.parse(
         schema.columns
             .reduce((str, column) => {
-                if (column.primary)
+                if (isPrimaryKey(pkColumns, column.name))
                     return (str += `{ "name": "${column.name}", "cnd": true}, `);
                 return (str += `{ "name": "${column.name}", "skip": "function" }, `);
             }, '[')
@@ -154,6 +157,32 @@ module.exports = {
 
 /////////////////////////////////////////////////////////////////////////////////////
 // Helpers to implement the utility functions
+
+// Creates an array of primary key column names
+function primaryKeyNames(schema) {
+    const pkNames = [];
+    if (!schema.primaryKeys) {
+        // version of library that is <= v0.3.0
+        const primaryKeyColumn = schema.columns.find(
+            // @ts-ignore
+            (column) => column.primary
+        );
+
+        if(primaryKeyColumn) pkNames.push(primaryKeyColumn.name);
+    } else if (schema.primaryKeys.length === 1) {
+        // Replicates behavior of single primary key prior to v0.4.0
+        pkNames.push(schema.primaryKeys[0].name);
+    } else {
+        return schema.primaryKeys.map( key => key.name);
+    }
+
+    // multiple PRIMARY KEY columns
+    return pkNames;
+}
+
+function isPrimaryKey (pkColumns, name) {
+    return pkColumns.find((column) => column === name);
+}
 
 // Builde create table column string
 function _buildTableColumns(columns, hasPRIMARYKEY = false) {
