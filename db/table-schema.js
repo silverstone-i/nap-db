@@ -10,7 +10,6 @@
  * @property {boolean} [notNull] - Indicates whether the column can have null values.
  * @property {string} [default] - The default value for the column.
  * @property {boolean} [useDefault] - Indicates whether to use the default value for the column.
- * @deprecated {boolean} [primary] - [DEPRECATED for versions > v0.3.0] Indicates whether the column is a primary key.
  */
 
 /**
