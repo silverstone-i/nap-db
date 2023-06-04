@@ -23,13 +23,6 @@ class Model {
             this.schema.columns = [...schema.columns, ...timeStamps];
         this.db = db;
         this.pgp = pgp;
-        this._selectAll = `SELECT $1:name FROM ${this.schema.tableName}`;
-        this._selectWhere = `SELECT $1:name FROM ${this.schema.tableName} WHERE $2:name = $3;`;
-        this._updateCondition =
-            ` WHERE ${this.primaryKeyColumn()} = ` +
-            '${' +
-            `${this.primaryKeyColumn()}` +
-            '};';
     }
     /**
      * Gets the current select all query string
@@ -87,15 +80,7 @@ class Model {
      * @returns {string|null|PrimaryKey[]} - Name of tables PRIMARY KEY
      */
     primaryKeyColumn() {
-        if (!this.schema.primaryKeys) {
-            // version of library that is <= v0.3.0
-            const primaryKeyColumn = this.schema.columns.find(
-                // @ts-ignore
-                (column) => column.primary
-            );
-
-            return primaryKeyColumn ? primaryKeyColumn.name : null;
-        } else if (this.schema.primaryKeys.length === 1) {
+        if (this.schema.primaryKeys.length === 1) {
             // Replicates behavior of single primary key prior to v0.4.0
             return this.schema.primaryKeys[0].name;
         }
@@ -112,36 +97,6 @@ class Model {
     insert(dto) {
         const query = this.pgp.helpers.insert(dto, this.cs.insert);
         return this.db.none(query).catch((err) => Promise.reject(err));
-    }
-
-    /**
-     * @deprecated
-     * Read records cRud
-     * @param {Object} dto - Data Transfer Object specifying the fields to be selected
-     * @returns {Array<Object>} - Array of rows selected or 'Records not found' message
-     */
-    findAll(dto) {
-        const query = this.pgp.as.format(this._selectAll, [dto]);
-
-        return this.db.any(query).catch((err) => Promise.reject(err));
-    }
-
-    /**
-     * @deprecated
-     * Locate a specific record - cRud
-     * @param {Object} dto - Data Transfer Object specifying the fields to be selected
-     * @param {string} column - the name of the column used to locate the record
-     * @param {string|number} value - Array of rows selected or 'Records not found' message
-     * @returns {void}
-     */
-    findWhere(dto, column, value) {
-        const query = this.pgp.as.format(this._selectWhere, [
-            dto,
-            column,
-            value,
-        ]);
-
-        return this.db.any(query).catch((err) => Promise.reject(err));
     }
 
     /**
@@ -177,10 +132,9 @@ class Model {
 
         const query =
             this.pgp.as.format(
-                `select $1:name from ${this.schema.tableName} `,
+                `SELECT $1:name FROM ${this.schema.tableName} `,
                 [dto]
             ) + condition;
-        console.log(query);
 
         return this.db.any(query).catch((err) => Promise.reject(err));
     }

@@ -48,9 +48,16 @@ const updateDTO = {
 };
 
 const findDTO = {
-    email: true,
-    full_name: true,
-    employee_id: true,
+    email: 'Joe Picket',
+    full_name: '',
+    employee_id: '',
+};
+
+const whereDTO = {
+    email: 'Joe Picket',
+    full_name: '',
+    employee_id: '',
+    _condition: 'WHERE email = ${email}',
 };
 
 describe('Model Testing', () => {
@@ -172,23 +179,23 @@ describe('Model Testing', () => {
 
     it('should format the prepared statement correctly for find all', async () => {
         // const insertQuery = `INSERT INTO users (email, password, employee_id, full_name, role, created_by, last_modified_by) VALUES ($[email], $[password], $[employee_id], $[full_name], $[role], $[created_by], $[last_modified_by]);`
-        const expectedQuery = `SELECT "email","full_name","employee_id" FROM users`;
+        const expectedQuery = `SELECT "email","full_name","employee_id" FROM users `;
         // Perform the action that triggers the database query
-        const result = await model.findAll(findDTO);
+        const result = await model.find(findDTO);
 
         // Verify the behavior and capture the value of actualQuery
         const actualQuery = pgpSpy.as.format.firstCall.returnValue;
         expect(actualQuery).to.equal(expectedQuery);
     });
 
-    it('should format the prepared statement correctly for find one or none', async () => {
+    it('should format the prepared statement correctly with a WHERE clause', async () => {
         // const insertQuery = `INSERT INTO users (email, password, employee_id, full_name, role, created_by, last_modified_by) VALUES ($[email], $[password], $[employee_id], $[full_name], $[role], $[created_by], $[last_modified_by]);`
-        const expectedQuery = `SELECT "email","full_name","employee_id" FROM users WHERE "email" = 'joe@gmail.com';`;
+        const expectedQuery = `SELECT "email","full_name","employee_id" FROM users WHERE email = 'Joe Picket'`;
         // Perform the action that triggers the database query
-        const result = await model.findWhere(findDTO, 'email', 'joe@gmail.com');
+        const result = await model.find(whereDTO);
 
         // Verify the behavior and capture the value of actualQuery
-        const actualQuery = pgpSpy.as.format.firstCall.returnValue;
+        const actualQuery = pgpSpy.as.format.secondCall.returnValue + pgpSpy.as.format.firstCall.returnValue;
         expect(actualQuery).to.equal(expectedQuery);
     });
 
@@ -255,3 +262,19 @@ describe('Model Testing', () => {
         writeCreateTableFileSpy.restore();
     });
 });
+
+function findStringDifferenceIndex(string1, string2) {
+    const minLength = Math.min(string1.length, string2.length);
+    
+    for (let i = 0; i < minLength; i++) {
+      if (string1[i] !== string2[i]) {
+        return i;
+      }
+    }
+  
+    // If all characters checked so far are the same, but the strings have different lengths,
+    // return the index corresponding to the length of the shorter string.
+    if (string1.length !== string2.length) {
+      return minLength;
+    }
+}
