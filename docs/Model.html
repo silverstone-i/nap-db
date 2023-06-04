@@ -287,7 +287,7 @@ SELECT [colmns] FROM tablename</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line40">line 40</a>
+        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line33">line 33</a>
     </li></ul></dd>
     
 
@@ -349,7 +349,7 @@ SELECT [colmns] FROM tablename</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line47">line 47</a>
+        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line40">line 40</a>
     </li></ul></dd>
     
 
@@ -412,7 +412,7 @@ SELECT [colmns] FROM tablename WHERE [column] = value;</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line57">line 57</a>
+        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line50">line 50</a>
     </li></ul></dd>
     
 
@@ -474,7 +474,7 @@ SELECT [colmns] FROM tablename WHERE [column] = value;</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line64">line 64</a>
+        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line57">line 57</a>
     </li></ul></dd>
     
 
@@ -537,7 +537,7 @@ WHERE [primaryKeyColumn] = value</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line74">line 74</a>
+        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line67">line 67</a>
     </li></ul></dd>
     
 
@@ -599,7 +599,7 @@ WHERE [primaryKeyColumn] = value</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line81">line 81</a>
+        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line74">line 74</a>
     </li></ul></dd>
     
 
@@ -681,7 +681,7 @@ the following example</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line346">line 346</a>
+        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line292">line 292</a>
     </li></ul></dd>
     
 
@@ -743,7 +743,6 @@ the following example</p>
              name: 'email',
              type: 'varchar',
              length: 255,
-             primary: true
          },
          {
              name: 'password',
@@ -775,6 +774,7 @@ the following example</p>
              default: true
          },
      ],
+     primaryKeys: [ { name: 'email' } ]
      foreignKeys: [
          {
              hasRelations: [
@@ -869,7 +869,7 @@ the following example</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line246">line 246</a>
+        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line192">line 192</a>
     </li></ul></dd>
     
 
@@ -923,7 +923,7 @@ the following example</p>
     
 
     
-    <h4 class="name" id="executeQuery"><span class="type-signature"></span>executeQuery<span class="signature">(queryString)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="delete"><span class="type-signature"></span>delete<span class="signature">(dto)</span><span class="type-signature"> &rarr; {void}</span></h4>
     
 
     
@@ -931,8 +931,7 @@ the following example</p>
 
 
 <div class="description">
-    <p>Executes provided query string - This method is not safe and is intended for reporting
-Make sure the query string is properly validated and sanitized so the database is not corrupted</p>
+    <p>Delete record cruD</p>
 </div>
 
 
@@ -968,13 +967,13 @@ Make sure the query string is properly validated and sanitized so the database i
 
         <tr>
             
-                <td class="name"><code>queryString</code></td>
+                <td class="name"><code>dto</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">string</span>
+<span class="param-type"><a href="global.html#DTO">DTO</a></span>
 
 
             
@@ -984,7 +983,7 @@ Make sure the query string is properly validated and sanitized so the database i
 
             
 
-            <td class="description last"><p>SQL to be executed</p></td>
+            <td class="description last"><p>DTO containg primary key/s and delete condition</p></td>
         </tr>
 
     
@@ -1025,7 +1024,7 @@ Make sure the query string is properly validated and sanitized so the database i
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line234">line 234</a>
+        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line168">line 168</a>
     </li></ul></dd>
     
 
@@ -1050,6 +1049,24 @@ Make sure the query string is properly validated and sanitized so the database i
 
 
 
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">void</span>
+
+
+    </dd>
+</dl>
+
+    
 
 
 
@@ -1167,7 +1184,7 @@ Make sure the query string is properly validated and sanitized so the database i
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line168">line 168</a>
+        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line127">line 127</a>
     </li></ul></dd>
     
 
@@ -1236,367 +1253,6 @@ const dto = {
 ...
 Produces
  SELECT "company_id", "account_id", "name" FROM accounts WHERE company_id = '000' AND account_id = '1.1.1000';</code></pre>
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="findAll"><span class="type-signature"></span>findAll<span class="signature">(dto)</span><span class="type-signature"> &rarr; {Array.&lt;Object>}</span></h4>
-    
-
-    
-
-
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>dto</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Object</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>Data Transfer Object specifying the fields to be selected</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-        <dt class="important tag-deprecated">Deprecated:</dt><dd><ul class="dummy"><li>Read records cRud</li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line123">line 123</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <ul>
-<li>Array of rows selected or 'Records not found' message</li>
-</ul>
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">Array.&lt;Object></span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="findWhere"><span class="type-signature"></span>findWhere<span class="signature">(dto, column, value)</span><span class="type-signature"> &rarr; {void}</span></h4>
-    
-
-    
-
-
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>dto</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Object</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>Data Transfer Object specifying the fields to be selected</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>column</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>the name of the column used to locate the record</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>value</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-|
-
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>Array of rows selected or 'Records not found' message</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-        <dt class="important tag-deprecated">Deprecated:</dt><dd><ul class="dummy"><li>Locate a specific record - cRud</li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line136">line 136</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">void</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
 
 
 
@@ -1707,7 +1363,7 @@ Produces
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line112">line 112</a>
+        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line100">line 100</a>
     </li></ul></dd>
     
 
@@ -1761,7 +1417,7 @@ Produces
     
 
     
-    <h4 class="name" id="primaryKeyColumn"><span class="type-signature"></span>primaryKeyColumn<span class="signature">()</span><span class="type-signature"> &rarr; {string|null|Array.&lt;<a href="global.html#PrimaryKey">PrimaryKey</a>>}</span></h4>
+    <h4 class="name" id="primaryKeyColumn"><span class="type-signature"></span>primaryKeyColumn<span class="signature">()</span><span class="type-signature"> &rarr; {Array.&lt;<a href="global.html#PrimaryKey">PrimaryKey</a>>}</span></h4>
     
 
     
@@ -1813,7 +1469,7 @@ Produces
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line89">line 89</a>
+        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line85">line 85</a>
     </li></ul></dd>
     
 
@@ -1843,7 +1499,7 @@ Produces
         
 <div class="param-desc">
     <ul>
-<li>Name of tables PRIMARY KEY</li>
+<li>Array of primary key objects</li>
 </ul>
 </div>
 
@@ -1855,12 +1511,6 @@ Produces
     </dt>
     <dd>
         
-<span class="param-type">string</span>
-|
-
-<span class="param-type">null</span>
-|
-
 <span class="param-type">Array.&lt;<a href="global.html#PrimaryKey">PrimaryKey</a>></span>
 
 
@@ -1872,162 +1522,10 @@ Produces
 
 
 
-
-        
-            
-
+    <h5>Example</h5>
     
-
-    
-    <h4 class="name" id="purge"><span class="type-signature"></span>purge<span class="signature">(idValue)</span><span class="type-signature"> &rarr; {void}</span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    <p>Delete record cruD</p>
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>idValue</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-|
-
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>Value of PRIMARY KEY record to be deleted</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line212">line 212</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">void</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
+    <pre class="prettyprint"><code>...
+const primaryKeys = [{ name: 'company_id }, { name: 'account_id' }];</code></pre>
 
 
 
@@ -2138,7 +1636,7 @@ Produces
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line354">line 354</a>
+        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line300">line 300</a>
     </li></ul></dd>
     
 
@@ -2275,7 +1773,7 @@ Produces
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line192">line 192</a>
+        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line148">line 148</a>
     </li></ul></dd>
     
 
@@ -2381,7 +1879,7 @@ Produces
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line256">line 256</a>
+        <a href="Model.js.html">Model.js</a>, <a href="Model.js.html#line202">line 202</a>
     </li></ul></dd>
     
 
@@ -2451,13 +1949,13 @@ Produces
 </div>
 
 <nav>
-    <h2><a href="index.html">nap-db</a></h2><h3>Classes</h3><ul><li><a href="DB.html">DB</a></li><li><a href="Model.html">Model</a></li></ul><h3>Global</h3><ul><li><a href="global.html#dataSchema">dataSchema</a></li><li><a href="global.html#dto">dto</a></li></ul>
+    <h2><a href="index.html">nap-db</a></h2><h3>Classes</h3><ul><li><a href="DB.html">DB</a></li><li><a href="Model.html">Model</a></li></ul><h3>Global</h3><ul><li><a href="global.html#dataSchema">dataSchema</a></li><li><a href="global.html#dto">dto</a></li><li><a href="global.html#primaryKeys">primaryKeys</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Sun Jun 04 2023 02:36:12 GMT-0400 (Eastern Daylight Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Sun Jun 04 2023 14:37:07 GMT-0400 (Eastern Daylight Time)
 </footer>
 
 <script> prettyPrint(); </script>

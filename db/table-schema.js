@@ -26,9 +26,23 @@
 
 /**
  * @typedef {Object} PrimaryKey
- * @property {string} name - The name of a column acting as a primary key.
+ * @property {string} name - The name of the primary key.
  */
 
+/**
+ * @typedef {Array<PrimaryKey>} PrimaryKeys
+ */
+
+/** @type {PrimaryKeys} */
+const primaryKeys = [
+    {
+      name: 'company_id',
+    },
+    {
+      name: 'account_id',
+    },
+  ];
+  
 /**
  * @typedef {Object} DataSchema
  * @property {string} tableName - The name of the table.
@@ -52,7 +66,6 @@
  *              length: 10,
  *              unique: false,
  *              notNull: true,
- *              primary: false,
  *              default: 'default value',
  *              useDefault: true,
  *          },

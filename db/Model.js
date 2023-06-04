@@ -77,7 +77,10 @@ class Model {
 
     /**
      * Get primary key column name
-     * @returns {string|null|PrimaryKey[]} - Name of tables PRIMARY KEY
+     * @returns {PrimaryKey[]} - Array of primary key objects
+     * @example
+     * ...
+     * const primaryKeys = [{ name: 'company_id }, { name: 'account_id' }];
      */
     primaryKeyColumn() {
         if (this.schema.primaryKeys.length === 1) {
@@ -125,10 +128,8 @@ class Model {
         let condition = '';
         if (dto._condition) {
             condition = this.pgp.as.format(dto._condition, dto);
+            delete dto._condition;
         }
-
-        // // delete properties
-        if (dto._condition) delete dto._condition;
 
         const query =
             this.pgp.as.format(
@@ -161,14 +162,17 @@ class Model {
 
     /**
      * Delete record cruD
-     * @param {string|number} idValue - Value of PRIMARY KEY record to be deleted
+     * @param {DTO} dto - DTO containg primary key/s and delete condition
      * @returns {void}
      */
-    purge(idValue) {
-        const deleteRow = `DELETE FROM ${
-            this.schema.tableName
-        } WHERE ${this.primaryKeyColumn()} = $1`;
-        const query = this.pgp.as.format(deleteRow, [idValue]);
+    delete(dto) {
+        let condition = '';
+        if('_condition' in dto) {
+            condition = this.pgp.as.format(dto._condition, dto);
+            delete dto._condition;
+        }
+        const query = `DELETE FROM ${this.schema.tableName} ` + condition
+
         return this.db
             .result(query)
             .then((result) => {
@@ -177,19 +181,6 @@ class Model {
                     throw new Error('Record does not exist');
                 }
             })
-            .catch((err) => Promise.reject(err));
-    }
-
-    // Execute query string
-    /**
-     * Executes provided query string - This method is not safe and is intended for reporting
-     * Make sure the query string is properly validated and sanitized so the database is not corrupted
-     * @param {string} queryString - SQL to be executed
-     */
-    executeQuery(queryString) {
-        this.db
-            .any(queryString)
-            .then((dto) => dto)
             .catch((err) => Promise.reject(err));
     }
 
@@ -232,7 +223,6 @@ class Model {
      *              name: 'email',
      *              type: 'varchar',
      *              length: 255,
-     *              primary: true
      *          },
      *          {
      *              name: 'password',
@@ -264,6 +254,7 @@ class Model {
      *              default: true
      *          },
      *      ],
+     *      primaryKeys: [ { name: 'email' } ]
      *      foreignKeys: [
      *          {
      *              hasRelations: [
