@@ -146,12 +146,15 @@ class Model {
 
     /**
      * Performs a SELECT statement based on the information in the DTO object
-     * @list - DTO
+     * 
+     * @param {DTO} dto
+     * @returns {Array<Object>|string} - returns an array of rows found a single row or an error message
+     * 
+     * @list
      * - Columns to be returned by the select statement
      * - _condition - search condition i.e. WHERE clause - string
      * - _params - parameters associated with _condition - Array 
-     * @param {DTO} dto
-     * @returns {Array<Object>|string} - returns an array of rows found a single row or an error message
+     * 
      * @example 
      * ...
      * const dto = {
@@ -161,6 +164,7 @@ class Model {
      *      "_condition": "WHERE company_id = $1 AND account_id = $2;"
      *      "_params": [ '000', '1.1.1000']
      * }
+     * ...
      * Produces 
      *  SELECT "company_id", "account_id", "name" FROM accounts WHERE company_id = '000' AND account_id = '1.1.1000';
      */
