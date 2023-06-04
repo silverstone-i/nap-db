@@ -44,6 +44,7 @@ const updateDTO = {
     password: 'donthackme',
     role: 'user',
     updated_by: 'Joe Picket',
+    _condition: 'WHERE email = ${email};'
 };
 
 const findDTO = {
@@ -192,7 +193,7 @@ describe('Model Testing', () => {
     });
 
     it('should format the prepared statement correctly for update', async () => {
-        const expectedCondition = ` WHERE email = 'joe@gmail.com';`;
+        const expectedCondition = `WHERE email = 'joe@gmail.com';`;
         const expectedQuery = `UPDATE "public"."users" SET "password"='donthackme',"role"='user',"updated_at"=CURRENT_TIMESTAMP,"updated_by"='Joe Picket'`;
         // Perform the action that triggers the database query
         const result = await model.update(updateDTO);
