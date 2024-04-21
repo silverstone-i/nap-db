@@ -1,4 +1,4 @@
-// db.js
+// ./db/DB.js
 // database class that holds the connection and pgp objects
 'use strict';
 
@@ -44,7 +44,7 @@ class DB {
      * }
 
      * const connection = config.get('connection');
-     * const { db } = DB.init(connection, repositories);
+     * const db = DB.init(connection, repositories);
 
      * //Test the connection
      * db.connect()
@@ -71,7 +71,7 @@ class DB {
   static init(connection, repositories) {
     if (!DB.db) {
       const pgPromise = require('pg-promise');
-      const { Diagnostics } = require('./diagnostics'); // optional diagnostic
+      // const { Diagnostics } = require('./diagnostics'); // optional diagnostic
 
       const initOptions = {
         capSQL: true, // capitalize all generated SQL
