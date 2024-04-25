@@ -14,15 +14,10 @@ const connection = {
   password: process.env.DB_PASS,
 };
 
-console.log('Connection object:', connection);
-
-const repositories = {};
-
-const db = DB.init(connection, repositories);
-console.log('Database initialized');
-
+// console.log('Connection object:', connection);
 
 class Users extends Model {
+  static #cs;
     constructor(db, pgp) {
         const schema = {
           tableName: 'users',
@@ -38,44 +33,25 @@ class Users extends Model {
           uniqueConstraints: {
             users_id_unique: { columns: ['id'] },
           },
-          // columns: {
-          //   id: { type: 'serial', primaryKey: true },
-          //   name: { type: 'varchar(255)', nullable: false },
-          //   age: { type: 'int', nullable: true, default: 18 },
-          //   // Add more columns as needed
-          //   department_id: { type: 'int', nullable: false }, // Example foreign key column
-          //   // Add more foreign key columns as needed
-          //   manager_id: { type: 'int', nullable: false }, // Example additional foreign key column
-          // },
-          // foreignKeys: {
-          //   department_id: {
-          //     // Example foreign key definition for department_id
-          //     referenceTable: 'departments', // Referenced table name
-          //     referenceColumns: ['id'], // Referenced column(s) name in the departments table
-          //     onDelete: 'CASCADE', // Cascade deletion
-          //     onUpdate: 'CASCADE', // Cascade update
-          //   },
-          //   manager_id: {
-          //     // Example foreign key definition for manager_id
-          //     referenceTable: 'employees', // Referenced table name
-          //     referenceColumns: ['id'], // Referenced column(s) name in the employees table
-          //     onDelete: 'SET NULL', // Set manager_id to NULL on deletion of referenced employee
-          //     onUpdate: 'CASCADE', // Cascade update
-          //   },
-          //   // Add more foreign keys as needed
-          // },
-          // uniqueConstraints: {
-          //   test_table_name_age_unique: { columns: ['name', 'age'] }, // Example unique constraint for name column
-          //   // Add more unique constraints as needed
-          // },
         };
         super(db, pgp, schema);
+
+        if(!Users.#cs  ){
+          Users.#cs = this.createColumnSet();
+          this.setColumnsets(Users.#cs);
+          console.log('Column set created:', Users.#cs);
+        }
     }
 }
 
-const users = new Users(db, db.pgp);
+const repositories = { users: Users };
 
-console.log('users._createTableQuery():', users._createTableQuery());
+const db = DB.init(connection, repositories);
+console.log('Database initialized');
+
+const users = new Users(db, pgp);
+
+// console.log('users._createTableQuery():', users._createTableQuery());
 
 (async () => {
   await users.drop();
@@ -92,3 +68,5 @@ console.log('users._createTableQuery():', users._createTableQuery());
 //   .catch((error) => {
 //     console.error('Error:', error);
 //   });
+
+// console.log(db.users.pgp);

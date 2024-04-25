@@ -13,6 +13,42 @@ class Model {
   }
 
   /**
+   * @method Model#setColumnsets
+   * @description Sets the column sets for the model.
+   * @param {Object} cs - The column sets to set.
+   * @returns {void}
+   * @example
+   *
+   * class Users extends Model {
+   *  static #cs;
+   *  constructor(db, pgp) {
+   *    const schema = {
+   *      tableName: 'users',
+   *      timeStamps: true, // Add time stamps to table - default is true
+   *      columns: {
+   *        id: { type: 'serial', nullable: false }, // Serial type column
+   *        email: { type: 'varchar(255)', primaryKey: true },
+   *        password: { type: 'varchar(255)', nullable: false },
+   *      },
+   *      uniqueConstraints: {
+   *        users_id_unique: { columns: ['id'] },
+   *      },
+   *    };
+   *    super(db, pgp, schema);
+   *
+   *   Set column set. Simplifies access to the column set for this instance of the Users class and prevents calling Users.createColumnSet each time pgp is reinitialized
+   *    if(!Users.#cs  ){
+   *      Users.#cs = this.createColumnSet();
+   *      setColumnsets(Users.#cs);
+   *    }
+   * }
+   *
+   */
+  setColumnsets(cs) {
+    this.cs = cs;
+  }
+
+  /**
    * @method Model#init
    * @description Initializes the model by creating the table in the database.
    * @returns {Promise} A promise that resolves when the table is created.
@@ -186,7 +222,7 @@ class Model {
 
   // Function to create column set
   createColumnSet() {
-    const columnSet = new pgp.helpers.ColumnSet();
+    const columns = [];
 
     for (const column in this.schema.columns) {
       if (this.schema.columns.hasOwnProperty(column)) {
@@ -194,7 +230,7 @@ class Model {
         const isNullable = this.schema.columns[column].nullable || false;
         const defaultValue = this.schema.columns[column].default || null;
 
-        columnSet.add({
+        columns.push({
           name: column,
           prop: column,
           mod: ':raw',
@@ -206,6 +242,10 @@ class Model {
         });
       }
     }
+
+    const columnSet = new this.pgp.helpers.ColumnSet(columns, {
+      table: { table: this.schema.tableName, schema: 'public' },
+    });
 
     return columnSet;
   }

@@ -29,3 +29,5 @@ db
   .catch((error) => {
     console.log('Error connecting to Postgres database:', error.message);
   });
+
+  console.log('pgp object:', db);
