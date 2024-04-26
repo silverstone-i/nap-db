@@ -17,31 +17,27 @@ const connection = {
 // console.log('Connection object:', connection);
 
 class Users extends Model {
-  static #cs;
-    constructor(db, pgp) {
-        const schema = {
-          tableName: 'users',
-          timeStamps: true, // Add time stamps to table - default is true
-          columns: {
-            id: { type: 'serial', nullable: false }, // Serial type column
-            email: { type: 'varchar(255)', primaryKey: true },
-            password: { type: 'varchar(255)', nullable: false },
-            role: { type: 'varchar(255)', nullable: true, default: "'admin'" },
-            name: { type: 'varchar(255)', nullable: true },
-            ss: { type: 'varchar(255)', nullable: true },
-          },
-          uniqueConstraints: {
-            users_id_unique: { columns: ['id'] },
-          },
-        };
-        super(db, pgp, schema);
+  constructor(db, pgp) {
+    const schema = {
+      tableName: 'users',
+      dbSchema: 'public',
+      timeStamps: true, // Add time stamps to table - default is true
+      columns: {
+        id: { type: 'serial', nullable: false }, // Serial type column
+        email: { type: 'varchar(255)', primaryKey: true },
+        password: { type: 'varchar(255)', nullable: false },
+        role: { type: 'varchar(255)', nullable: true, default: "'admin'" },
+        name: { type: 'varchar(255)', nullable: true },
+        ss: { type: 'varchar(255)', nullable: true },
+      },
+      uniqueConstraints: {
+        users_id_unique: { columns: ['id'] },
+      },
+    };
+    super(db, pgp, schema);
 
-        if(!Users.#cs  ){
-          Users.#cs = this.createColumnSet();
-          this.setColumnsets(Users.#cs);
-          console.log('Column set created:', Users.#cs);
-        }
-    }
+    this.createColumnSet();
+  }
 }
 
 const repositories = { users: Users };
@@ -50,23 +46,23 @@ const db = DB.init(connection, repositories);
 console.log('Database initialized');
 
 const users = new Users(db, pgp);
+console.log('LOG COLUMNSET:', users.columnset);
 
-// console.log('users._createTableQuery():', users._createTableQuery());
+const dto = {
+  columns: {
+    id: 1,
+    email: 'ian@test.com',
+    password: 'huluhoops',
+    // role: 'user',
+    name: 'ian',
+    ss: '000-00-0000',
+  },
+};
 
-(async () => {
-  await users.drop();
-  await users.init();
-})();
-// users
-//   .drop()
-//   .then(() => {
-//     return users.init();
-//   })
-//   .then(() => {
-//     console.log('Initialization complete.');
-//   })
-//   .catch((error) => {
-//     console.error('Error:', error);
-//   });
+// const queryC = pgp.helpers.insert(dto.columns, users.cs);
+// console.log('INSERT QUERY:', queryC);
 
-// console.log(db.users.pgp);
+const queryU =
+  pgp.helpers.update(dto.columns, users.cs) + ' WHERE id = $1 AND email = $2';
+console.log('UPDATE QUERY:', queryU);
+

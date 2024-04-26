@@ -2,6 +2,7 @@
  * Represents the schema configuration for a database table.
  * @typedef {Object} TableSchema
  * @property {string} tableName - The name of the table.
+ * @property {string} [dbSchema='public'] - The schema of the table (default is 'public').
  * @property {boolean} [timeStamps=true] - Whether to add timestamp columns to the table (default is true).
  * @property {Object.<string, ColumnConfig>} columns - The columns of the table.
  * @property {Object.<string, ForeignKeyConfig>} [foreignKeys] - The foreign keys of the table.
