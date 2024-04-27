@@ -196,29 +196,38 @@ class Model {
 
       for (const column in this.schema.columns) {
         if (this.schema.columns.hasOwnProperty(column)) {
-          const columnType = this.schema.columns[column].type;
-          const isNullable = this.schema.columns[column].nullable || false;
+          // const columnType = this.schema.columns[column].type;
+          const isPrimaryKey = this.schema.columns[column].primaryKey || false;
+          // const isNullable = this.schema.columns[column].nullable || false;
           const defaultValue = this.schema.columns[column].default || null;
 
           let columnObject = {
             name: column,
             prop: column,
           };
-          isNullable
-            ? (columnObject.skip = (c) => {
-                console.log('SKIP:', c);
-                return !c.exists;
-              })
-            : (columnObject.cnd = true);
+          isPrimaryKey
+            ? (columnObject.cnd = true)
+            : (columnObject.skip = (c) => !c.exists);
+          defaultValue ? (columnObject.def = defaultValue) : null;
           columns.push(columnObject);
         }
       }
 
-      const columnSet = new this.pgp.helpers.ColumnSet(columns, {
-        table: { table: this.schema.tableName, schema: 'public' },
+      const cs = {};
+      cs[this.schema.tableName] = new this.pgp.helpers.ColumnSet(columns, {
+        table: { table: this.schema.tableName, schema: this.schema.dbSchema },
       });
+      cs.insert = cs[this.schema.tableName].extend(['created_by']);
+      cs.update = cs[this.schema.tableName].extend([
+        {
+          name: `updated_at`,
+          mod: '^',
+          def: 'CURRENT_TIMESTAMP',
+        },
+        `updated_by`,
+      ]);
 
-      this.cs = columnSet;
+      this.cs = cs;
     }
   }
 }

@@ -23,15 +23,12 @@ class Users extends Model {
       dbSchema: 'public',
       timeStamps: true, // Add time stamps to table - default is true
       columns: {
-        id: { type: 'serial', nullable: false }, // Serial type column
         email: { type: 'varchar(255)', primaryKey: true },
         password: { type: 'varchar(255)', nullable: false },
-        role: { type: 'varchar(255)', nullable: true, default: "'admin'" },
-        name: { type: 'varchar(255)', nullable: true },
-        ss: { type: 'varchar(255)', nullable: true },
-      },
-      uniqueConstraints: {
-        users_id_unique: { columns: ['id'] },
+        employee_id: { type: 'int4', nullable: false },
+        full_name: { type: 'varchar(50)', nullable: false },
+        role: { type: 'varchar(25)', nullable: false, default: 'user'},
+        active: { type: 'bool', nullable: false, default: true },
       },
     };
     super(db, pgp, schema);
@@ -48,21 +45,31 @@ console.log('Database initialized');
 const users = new Users(db, pgp);
 console.log('LOG COLUMNSET:', users.columnset);
 
-const dto = {
-  columns: {
-    id: 1,
-    email: 'ian@test.com',
-    password: 'huluhoops',
-    // role: 'user',
-    name: 'ian',
-    ss: '000-00-0000',
-  },
+const cs = users.columnset;
+// console.log(cs.columns[2].skip.toString());
+
+const insertDTO = {
+  email: 'joe@gmail.com',
+  password: 'donthackme',
+  employee_id: 123,
+  full_name: 'Joe Picket',
+  role: 'admin',
+  active: false,
+  created_by: 'Joe Picket',
 };
 
-// const queryC = pgp.helpers.insert(dto.columns, users.cs);
-// console.log('INSERT QUERY:', queryC);
+const insert = pgp.helpers.insert(insertDTO, cs.insert);
+console.log('\nINSERT QUERY:', insert);
 
-const queryU =
-  pgp.helpers.update(dto.columns, users.cs) + ' WHERE id = $1 AND email = $2';
-console.log('UPDATE QUERY:', queryU);
+const updateDTO = {
+  email: 'joe@gmail.com',
+  password: 'donthackme',
+  role: 'user',
+  updated_by: 'Joe Picket',
+ _condition: 'WHERE email = ${email};',
+};
 
+const update =
+  pgp.helpers.update(updateDTO, cs.update) +
+  ' WHERE id = $1 AND email = $2';
+console.log('\nUPDATE QUERY:', update);
