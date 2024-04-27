@@ -5,13 +5,70 @@ class Model {
   /**
    * @class Model
    * @classdesc Represents a database model.
+   * @param {Object} db - The database connection.
+   * @param {Object} pgp - The pg-promise object.
+   * @param {Object} schema - The schema for the model.
+   * @param {string} schema.tableName - The name of the table.
+   * @param {string} schema.dbSchema - The schema of the table.
+   * @param {boolean} [schema.timeStamps=true] - Whether to add timestamps to the table.
+   * @param {Object} schema.columns - The columns of the table.
+   * @param {string} schema.columns.columnName.type - The type of the column.
+   * @param {boolean} [schema.columns.columnName.primaryKey=false] - Whether the column is a primary key.   
+   * @param {boolean} [schema.columns.columnName.nullable=true] - Whether the column is nullable.
+   * @param {string} [schema.columns.columnName.default] - The default value of the column.
+   * @param {Object} [schema.foreignKeys] - The foreign keys of the table.
+   * @param {string} schema.foreignKeys.columnName.referenceTable - The table the column references.
+   * @param {string[]} schema.foreignKeys.columnName.referenceColumns - The columns the column references.
+   * @param {string} schema.foreignKeys.columnName.onDelete - The action to take when the referenced row is deleted.
+   * @param {string} schema.foreignKeys.columnName.onUpdate - The action to take when the referenced row is updated.
+   * @param {Object} [schema.uniqueConstraints] - The unique constraints of the table.
+   * @param {string[]} schema.uniqueConstraints.constraintName.columns - The columns of the constraint.
+   * @returns {Model} The model.
+   * 
+   * @example
+   * 
+   * class Users extends Model {
+   *  constructor(db, pgp) {
+   *    const schema = {
+   *      tableName: 'users',
+   *      dbSchema: 'public',
+   *      timeStamps: true,
+   *      columns: {
+   *        email: { type: 'varchar(255)', primaryKey: true },
+   *        password: { type: 'varchar(255)', nullable: false },
+   *        employee_id: { type: 'int4', nullable: false },
+   *        full_name: { type: 'varchar(50)', nullable: false },
+   *        role: { type: 'varchar(25)', nullable: false, default: 'user' },
+   *        active: { type: 'bool', nullable: false, default: true },
+   *      },
+   *    };
+   *    super(db, pgp, schema);
+   *    this.createColumnSet();
+   *  }
+   * }
+   *  
+   * const users = new Users(db, pgp);
    */
+
   constructor(db, pgp, schema) {
     this.db = db;
     this.pgp = pgp;
     this.schema = JSON.parse(JSON.stringify(schema));
     this.cs = null;
   }
+
+  /**
+   * @property Model#columnset
+   * @description The column set for the model.
+   * @type {Object}
+   * @readonly 
+   * @returns {Object} The ColumbSet for the model.
+   * 
+   * @example
+   * const users = new Users(db, pgp);
+   * const cs = users.columnset;
+   * 
+   */
 
   get columnset() {
     return this.cs;
@@ -31,6 +88,7 @@ class Model {
    * @method Model#createTableQuery
    * @description Generates the SQL query to create the table.
    * @returns {string} The SQL query to create the table.
+   * @private               
    */
   _createTableQuery() {
     let columns = Object.entries(this.schema.columns)
@@ -189,7 +247,12 @@ class Model {
     );
   }
 
-  // Function to create column set
+ /**
+  * @method Model#createColumnSet
+  * @description Creates the ColumnSet for the model.
+  * @private
+  * @returns {void}
+  */
   createColumnSet() {
     if (!this.cs) {
       const columns = [];
