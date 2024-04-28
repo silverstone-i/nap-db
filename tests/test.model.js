@@ -34,6 +34,7 @@ class Users extends Model {
     super(db, pgp, schema);
 
     this.createColumnSet();
+    console.log('COLUMNSET:', this.cs);
   }
 }
 

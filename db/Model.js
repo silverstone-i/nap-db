@@ -292,24 +292,20 @@ class Model {
    */
   createColumnSet() {
     if (!this.cs) {
-      const columns = [];
+      const columns = Object.keys(this.schema.columns).map((column) => {
+        const isPrimaryKey = this.schema.columns[column].primaryKey || false;
+        const defaultValue = this.schema.columns[column].default || null;
 
-      for (const column in this.schema.columns) {
-        if (this.schema.columns.hasOwnProperty(column)) {
-          const isPrimaryKey = this.schema.columns[column].primaryKey || false;
-          const defaultValue = this.schema.columns[column].default || null;
-
-          let columnObject = {
-            name: column,
-            prop: column,
-          };
-          isPrimaryKey
-            ? (columnObject.cnd = true)
-            : (columnObject.skip = (c) => !c.exists);
-          defaultValue ? (columnObject.def = defaultValue) : null;
-          columns.push(columnObject);
-        }
-      }
+        let columnObject = {
+          name: column,
+          prop: column,
+        };
+        isPrimaryKey
+          ? (columnObject.cnd = true)
+          : (columnObject.skip = (c) => !c.exists);
+        defaultValue ? (columnObject.def = defaultValue) : null;
+        return columnObject;
+      });
 
       const cs = {};
       cs[this.schema.tableName] = new this.pgp.helpers.ColumnSet(columns, {
@@ -329,5 +325,4 @@ class Model {
     }
   }
 }
-
 module.exports = Model;
