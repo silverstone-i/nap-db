@@ -242,7 +242,7 @@ class Model {
    */
   async delete(filters) {
     try {
-      condition = '';
+      let condition = '';
       if (deleteDTO._condition) {
         condition = pgp.as.format(deleteDTO._condition, deleteDTO);
         delete deleteDTO._condition;
@@ -296,9 +296,7 @@ class Model {
 
       for (const column in this.schema.columns) {
         if (this.schema.columns.hasOwnProperty(column)) {
-          // const columnType = this.schema.columns[column].type;
           const isPrimaryKey = this.schema.columns[column].primaryKey || false;
-          // const isNullable = this.schema.columns[column].nullable || false;
           const defaultValue = this.schema.columns[column].default || null;
 
           let columnObject = {
