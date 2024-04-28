@@ -13,7 +13,7 @@ class Model {
    * @param {boolean} [schema.timeStamps=true] - Whether to add timestamps to the table.
    * @param {Object} schema.columns - The columns of the table.
    * @param {string} schema.columns.columnName.type - The type of the column.
-   * @param {boolean} [schema.columns.columnName.primaryKey=false] - Whether the column is a primary key.   
+   * @param {boolean} [schema.columns.columnName.primaryKey=false] - Whether the column is a primary key.
    * @param {boolean} [schema.columns.columnName.nullable=true] - Whether the column is nullable.
    * @param {string} [schema.columns.columnName.default] - The default value of the column.
    * @param {Object} [schema.foreignKeys] - The foreign keys of the table.
@@ -24,9 +24,9 @@ class Model {
    * @param {Object} [schema.uniqueConstraints] - The unique constraints of the table.
    * @param {string[]} schema.uniqueConstraints.constraintName.columns - The columns of the constraint.
    * @returns {Model} The model.
-   * 
+   *
    * @example
-   * 
+   *
    * class Users extends Model {
    *  constructor(db, pgp) {
    *    const schema = {
@@ -46,7 +46,7 @@ class Model {
    *    this.createColumnSet();
    *  }
    * }
-   *  
+   *
    * const users = new Users(db, pgp);
    */
 
@@ -61,15 +61,14 @@ class Model {
    * @property Model#columnset
    * @description The column set for the model.
    * @type {Object}
-   * @readonly 
+   * @readonly
    * @returns {Object} The ColumbSet for the model.
-   * 
+   *
    * @example
    * const users = new Users(db, pgp);
    * const cs = users.columnset;
-   * 
+   *
    */
-
   get columnset() {
     return this.cs;
   }
@@ -88,7 +87,7 @@ class Model {
    * @method Model#createTableQuery
    * @description Generates the SQL query to create the table.
    * @returns {string} The SQL query to create the table.
-   * @private               
+   * @private
    */
   _createTableQuery() {
     let columns = Object.entries(this.schema.columns)
@@ -152,15 +151,21 @@ class Model {
    * @description Inserts a row into the table.
    * @param {Object} data - The data to insert.
    * @returns {Promise} A promise that resolves when the row is inserted.
+   *
+   * @example
+   * ...
+   * const users = new Users(db, pgp);
+   * await users.insert({ email: '  [email protected] ', password: 'password', employee_id: 1, full_name: 'John Doe' });
+   * ...
    */
-  async insert(data) {
-    const keys = Object.keys(data).join(',');
-    const values = Object.values(data)
-      .map((value) => (typeof value === 'string' ? `'${value}'` : value))
-      .join(',');
-    return this.db.none(
-      `INSERT INTO ${this.schema.tableName} (${keys}) VALUES (${values});`
-    );
+  async insert(dto) {
+    try {
+      if (!this.cs) this.createColumnSet();
+      const qInsert = this.pgp.helpers.insert(dto, this.cs.insert);
+      return await this.db.none(qInsert, dto);
+    } catch (error) {
+      return Promise.reject(error);
+    }
   }
 
   /**
@@ -168,17 +173,34 @@ class Model {
    * @description Selects rows from the table.
    * @param {Object} [filters] - The filters to apply to the query.
    * @returns {Promise} A promise that resolves with the selected rows.
+   *
+   * @example
+   * ...
+   * const users = new Users(db, pgp);
+   * const allUsers = await users.select();
+   * const activeUsers = await users.select({ active: true });
+   * ...
    */
-  async select(filters) {
-    const where = filters
-      ? `WHERE ${Object.entries(filters)
-          .map(
-            ([key, value]) =>
-              `${key} = ${typeof value === 'string' ? `'${value}'` : value}`
-          )
-          .join(' AND ')}`
-      : '';
-    return this.db.any(`SELECT * FROM ${this.schema.tableName} ${where};`);
+  async select(dto) {
+    try {
+      let condition = '';
+      if (dto._condition) {
+        condition = this.pgp.as.format(dto._condition, dto);
+        delete dto._condition;
+      }
+
+      const qSelect =
+        Object.keys(dto).length === 0 && dto.constructor === Object
+          ? `SELECT * FROM ${this.schema.tableName};`
+          : this.pgp.as.format(
+              `SELECT $1:name FROM ${this.schema.tableName} ${condition};`,
+              [dto]
+            );
+
+      return this.db.any(qSelect);
+    } catch (error) {
+      return Promise.reject(error);
+    }
   }
 
   /**
@@ -187,23 +209,29 @@ class Model {
    * @param {Object} filters - The filters to apply to the query.
    * @param {Object} data - The data to update.
    * @returns {Promise} A promise that resolves when the rows are updated.
+   * 
+   * @example
+   * ...
+   * const users = new Users(db, pgp);
+   * await users.update({ active: true }, { active: false });
+   
+   * const users = new Users(db, pgp);
+   * await users.update({ email: '  [email protected] ' }, { full_name: 'John Doe' });
+   * ...             
    */
-  async update(filters, data) {
-    const where = filters
-      ? `WHERE ${Object.entries(filters)
-          .map(
-            ([key, value]) =>
-              `${key} = ${typeof value === 'string' ? `'${value}'` : value}`
-          )
-          .join(' AND ')}`
-      : '';
-    const set = Object.entries(data)
-      .map(
-        ([key, value]) =>
-          `${key} = ${typeof value === 'string' ? `'${value}'` : value}`
-      )
-      .join(',');
-    return this.db.none(`UPDATE ${this.schema.tableName} SET ${set} ${where};`);
+  async update(dto) {
+    try {
+      if (!this.cs) this.createColumnSet();
+      const condition = this.pgp.as.format(dto._condition, dto);
+      const qUpdate = this.pgp.helpers.update(dto, this.cs.update) + condition;
+      const result = await this.db.result(qUpdate, dto);
+
+      if (result.rowcount === 0) {
+        throw new Error('No rows updated'); // throw error if no rows updated;
+      }
+    } catch (error) {
+      return Promise.reject(error);
+    }
   }
 
   /**
@@ -213,15 +241,24 @@ class Model {
    * @returns {Promise} A promise that resolves when the rows are deleted.
    */
   async delete(filters) {
-    const where = filters
-      ? `WHERE ${Object.entries(filters)
-          .map(
-            ([key, value]) =>
-              `${key} = ${typeof value === 'string' ? `'${value}'` : value}`
-          )
-          .join(' AND ')}`
-      : '';
-    return this.db.none(`DELETE FROM ${this.schema.tableName} ${where};`);
+    try {
+      condition = '';
+      if (deleteDTO._condition) {
+        condition = pgp.as.format(deleteDTO._condition, deleteDTO);
+        delete deleteDTO._condition;
+      } else {
+        throw new Error('Delete requires a condition');
+      } // end if deleteDTO._condition
+
+      const qDelete = pgp.as.format(
+        `DELETE FROM ${users.schema.tableName} ${condition};`,
+        [deleteDTO]
+      );
+
+      return this.db.none(qDelete);
+    } catch (error) {
+      return Promise.reject(error);
+    }
   }
 
   /**
@@ -247,12 +284,12 @@ class Model {
     );
   }
 
- /**
-  * @method Model#createColumnSet
-  * @description Creates the ColumnSet for the model.
-  * @private
-  * @returns {void}
-  */
+  /**
+   * @method Model#createColumnSet
+   * @description Creates the ColumnSet for the model.
+   * @private
+   * @returns {void}
+   */
   createColumnSet() {
     if (!this.cs) {
       const columns = [];

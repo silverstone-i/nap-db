@@ -27,7 +27,7 @@ class Users extends Model {
         password: { type: 'varchar(255)', nullable: false },
         employee_id: { type: 'int4', nullable: false },
         full_name: { type: 'varchar(50)', nullable: false },
-        role: { type: 'varchar(25)', nullable: false, default: 'user'},
+        role: { type: 'varchar(25)', nullable: false, default: 'user' },
         active: { type: 'bool', nullable: false, default: true },
       },
     };
@@ -66,10 +66,55 @@ const updateDTO = {
   password: 'donthackme',
   role: 'user',
   updated_by: 'Joe Picket',
- _condition: 'WHERE email = ${email};',
+  _condition: ' where email = ${email}',
 };
 
-const update =
-  pgp.helpers.update(updateDTO, cs.update) +
-  ' WHERE id = $1 AND email = $2';
+const filters = { email: 'joe@gmail.com' };
+
+let condition = pgp.as.format(updateDTO._condition, updateDTO);
+const update = pgp.helpers.update(updateDTO, cs.update) + condition;
 console.log('\nUPDATE QUERY:', update);
+
+const selectDTO = {
+  email: 'joe@gmail.com',
+  password: 'donthackme',
+  role: 'user',
+  _condition: 'where email = ${email}',
+};
+
+condition = '';
+if (selectDTO._condition) {
+  condition = pgp.as.format(selectDTO._condition, selectDTO);
+  delete selectDTO._condition;
+}
+
+console.log('Condition:', condition);
+
+const select =
+  Object.keys(selectDTO).length === 0 && selectDTO.constructor === Object
+    ? `SELECT * FROM ${users.schema.tableName};`
+    : pgp.as.format(
+        `SELECT $1:name FROM ${users.schema.tableName} ${condition};`,
+        [selectDTO]
+      );
+
+console.log('\nSELECT QUERY:', select);
+
+const deleteDTO = {
+  email: 'joe@gmail.com',
+  _condition: 'where email = ${email}',
+};
+
+condition = '';
+if (deleteDTO._condition) {
+  condition = pgp.as.format(deleteDTO._condition, deleteDTO);
+  delete deleteDTO._condition;
+} else {
+  throw new Error('Delete requires a condition');
+} // end if deleteDTO._condition
+
+const del = pgp.as.format(
+  `DELETE FROM ${users.schema.tableName} ${condition};`,
+  [deleteDTO]
+);
+console.log('\nDELETE QUERY:', del);
