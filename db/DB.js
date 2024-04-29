@@ -8,6 +8,60 @@ const createPgp = (options) => pgPromise(options);
 const createRepositoryInstance = (repository, obj) =>
   new repository(obj, DB.pgp);
 
+/**
+ * Represents an error that occurs in the database.
+ * 
+ * @class
+ * @extends Error
+ * @name DBError
+ * 
+ * @param {string} message - The error message.
+ * @param {Error} cause - The cause of the error.
+ */
+class DBError extends Error {
+  constructor(message, cause) {
+    super(message);
+    this.name = 'DBError';
+    this.cause = cause;
+  }
+}
+
+/**
+ * Represents an error that occurs when a connection parameter is missing or invalid.
+ *
+ * @class ConnectionParameterError
+ * @extends {DBError}
+ */
+class ConnectionParameterError extends DBError {
+  constructor() {
+    super('Connection parameter is required');
+    this.name = 'ConnectionParameterError';
+  }
+}
+
+/**
+ * Represents an error that occurs when the 'repositories' parameter is missing or not a plain object.
+ * 
+ * @class RepositoriesParameterError
+ * @extends {DBError}
+ */
+class RepositoriesParameterError extends DBError {
+  constructor() {
+    super('Repositories parameter is required and must be a plain object');
+    this.name = 'RepositoriesParameterError';
+  }
+}
+
+/**
+ * Initializes the database connection and creates repository instances.
+ * 
+ * @param {Object} connection - The connection object for the database.
+ * @param {Object} repositories - The repositories object containing repository constructors.
+ * @returns {Object} - The initialized database object.
+ * @throws {ConnectionParameterError} - If the connection parameter is undefined or null.
+ * @throws {RepositoriesParameterError} - If the repositories parameter is not a plain object.
+ * @throws {DBError} - If there is an error initializing the database.
+ */
 class DB {
   static db;
   static pgp;
@@ -16,7 +70,7 @@ class DB {
     if (!DB.db) {
       try {
         if (connection === undefined || connection === null) {
-          throw new Error('Connection parameter is required');
+          throw new ConnectionParameterError();
         }
         if (
           !repositories ||
@@ -24,19 +78,20 @@ class DB {
           Array.isArray(repositories) ||
           repositories === null
         ) {
-          throw new Error(
-            'Repositories parameter is required and must be a plain object'
-          );
+          throw new RepositoriesParameterError();
         }
 
         const initOptions = {
           capSQL: true, // capitalize all generated SQL
           extend(obj, dc) {
-            for (const [repository, repoConstructor] of Object.entries(
-              repositories
-            )) {
-              obj[repository] = createRepositoryInstance(repoConstructor, obj);
-            }
+            Object.entries(repositories).forEach(
+              ([repository, repoConstructor]) => {
+                obj[repository] = createRepositoryInstance(
+                  repoConstructor,
+                  obj
+                );
+              }
+            );
             console.log('CREATE Repositories');
           },
         };
@@ -44,7 +99,9 @@ class DB {
         DB.db = DB.pgp(connection);
       } catch (error) {
         console.error('Error initializing database:', error.message);
-        throw new Error('Database initialization failed', { cause: error });
+        const newError = new DBError('Database initialization failed');
+        newError.stack = error.stack;
+        throw newError;
       }
     }
 
