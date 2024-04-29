@@ -34,7 +34,6 @@ class Users extends Model {
     super(db, pgp, schema);
 
     this.createColumnSet();
-    console.log('COLUMNSET:', this.cs);
   }
 }
 
@@ -45,6 +44,13 @@ console.log('Database initialized');
 
 const users = new Users(db, pgp);
 console.log('LOG COLUMNSET:', users.columnset);
+
+try {
+   users.init();
+  console.log('Table created');
+} catch (error) {
+  console.error('Error creating table:', error.message);
+}
 
 const cs = users.columnset;
 // console.log(cs.columns[2].skip.toString());
