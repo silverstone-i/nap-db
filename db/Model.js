@@ -127,8 +127,9 @@ class Model {
     try {
       if (!this.cs) this.createColumnSet();
       const condition = this.pgp.as.format(dto._condition, dto);
-      const qUpdate = this.pgp.helpers.update(dto, this.cs.update) + condition;
-      const result = await this.db.result(qUpdate, dto);
+      
+      const qUpdate = `${this.pgp.helpers.update(dto, this.cs.update)} ${condition};`;
+      console.log('Query:', qUpdate);
 
       if (result.rowcount === 0) {
         throw new Error('No rows updated');
