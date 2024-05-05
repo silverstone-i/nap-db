@@ -18,6 +18,8 @@ const {
  * @throws {RepositoriesParameterError} - If the repositories parameter is not a plain object.
  * @throws {DBError} - If there is an error initializing the database.
  */
+
+let counter = 0;
 class DB {
   static db;
   static pgp;
@@ -42,6 +44,7 @@ class DB {
           capSQL: true, // capitalize all generated SQL
           extend(obj, dc) {
             for (const repository of Object.keys(repositories)) {
+              console.log('Counter:', ++counter);
               obj[repository] = new repositories[repository](obj, DB.pgp);
             }
           },

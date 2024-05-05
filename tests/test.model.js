@@ -43,10 +43,11 @@ const db = DB.init(connection, repositories);
 console.log('Database initialized');
 
 const users = new Users(db, pgp);
+
 console.log('LOG COLUMNSET:', users.columnset);
 
 try {
-   users.init();
+  users.init();
   console.log('Table created');
 } catch (error) {
   console.error('Error creating table:', error.message);
@@ -95,7 +96,7 @@ if (selectDTO._condition) {
   delete selectDTO._condition;
 }
 
-console.log('Condition:', condition);
+console.log('Select Condition:', condition);
 
 const select =
   Object.keys(selectDTO).length === 0 && selectDTO.constructor === Object
