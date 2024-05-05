@@ -4,16 +4,16 @@
 const { DBError } = require('./errors');
 
 class Model {
-  static csCounter = 0;
+  // static csCounter = 0;
   constructor(db, pgp, schema) {
     this.db = db;
     this.pgp = pgp;
     if (!schema.dbSchema) schema.dbSchema = 'public';
     if (!schema.timeStamps) schema.timeStamps = true;
     this.schema = JSON.parse(JSON.stringify(schema));
-    this.csCount = 0;
+    // this.csCount = 0;
     this.cs = this.createColumnSet();
-    console.log('Model initialized', this.cs !== null);
+    // console.log('Model initialized', this.cs !== null);
   }
 
   get columnset() {
@@ -21,9 +21,6 @@ class Model {
   }
 
   async init() {
-    // const query = this._createTableQuery();
-    // console.log('Query:', query);
-
     await this.db.none(this._createTableQuery());
   }
 
@@ -79,17 +76,12 @@ class Model {
   }
 
   async insert(dto) {
-    console.log('Inserting:', dto);
-
     try {
       if (!this.cs) this.createColumnSet();
       const qInsert = this.pgp.helpers.insert(dto, this.cs.insert);
-      console.log('Query:', qInsert);
       return await this.db.none(qInsert, dto);
     } catch (error) {
-      console.log('Error:', error);
-
-      throw new DBError(error);
+      throw new DBError(error.message);
     }
   }
 
@@ -103,7 +95,6 @@ class Model {
         dto = Object.fromEntries(
           Object.entries(dto).filter(([key, value]) => value === '')
         ); // Convert object to array and back to object to remove condition values
-        console.log('DTO:', dto);
       }
 
       // Build the SELECT query
@@ -115,11 +106,9 @@ class Model {
               [dto]
             );
 
-      console.log('Query:', qSelect);
-
       return this.db.any(qSelect);
     } catch (error) {
-      throw new DBError(error);
+      throw new DBError(error.message);
     }
   }
 
@@ -129,13 +118,12 @@ class Model {
       const condition = this.pgp.as.format(dto._condition, dto);
       
       const qUpdate = `${this.pgp.helpers.update(dto, this.cs.update)} ${condition};`;
-      console.log('Query:', qUpdate);
 
       if (result.rowcount === 0) {
-        throw new Error('No rows updated');
+        throw new DBError('No rows updated');
       }
     } catch (error) {
-      return Promise.reject(error);
+      throw new DBError(error.message);;
     }
   }
 
@@ -146,17 +134,20 @@ class Model {
         condition = this.pgp.as.format(dto._condition, dto);
         delete dto._condition;
       } else {
-        throw new Error('Delete requires a condition');
+        throw new DBError('Delete requires a condition');
       }
 
       const qDelete = this.pgp.as.format(
         `DELETE FROM ${this.schema.tableName} ${condition};`,
         [dto]
       );
-
-      return this.db.none(qDelete);
+      
+      const result = await this.db.result(qDelete, (a) => a.rowCount);
+      if (result.rowCount === 0) {
+        throw new DBError('No records found to delete');
+      }
     } catch (error) {
-      throw error;
+      throw new DBError(error.message);
     }
   }
 
@@ -174,7 +165,7 @@ class Model {
 
   createColumnSet() {
     if (!this.cs) {
-      console.log('Creating column set', ++Model.csCounter);
+      // console.log('Creating column set', ++Model.csCounter);
 
       const columns = Object.keys(this.schema.columns)
         .map((column) => {

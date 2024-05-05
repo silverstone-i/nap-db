@@ -1,5 +1,7 @@
 'use strict';
 
+const DB = require('./DB');
+
 /**
  * Represents an error that occurs in the database.
  *
@@ -11,10 +13,20 @@
  * @param {Error} cause - The cause of the error.
  */
 class DBError extends Error {
-  constructor(message, cause) {
+  constructor(message) {
     super(message);
     this.name = 'DBError';
-    this.cause = cause;
+
+    // // Ensure the correct prototype chain
+    // Object.setPrototypeOf(this, DBError.prototype);
+
+    // // Capture the stack trace
+    // if (Error.captureStackTrace) {
+    //   console.log('Capturing stack trace');
+    //   Error.captureStackTrace(this, DBError);
+    //   console.log('Stack trace captured', this.stack);
+      
+    // }
   }
 }
 
@@ -47,5 +59,5 @@ class RepositoriesParameterError extends DBError {
 module.exports = {
   DBError,
   ConnectionParameterError,
-  RepositoriesParameterError
+  RepositoriesParameterError,
 };

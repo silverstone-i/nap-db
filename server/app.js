@@ -1,10 +1,11 @@
-'use strict';
-require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
-const app = express();
 const DB = require('../db/DB');
 const Users = require('./Users');
+
+('use strict');
+require('dotenv').config();
+const app = express();
 
 // Initialize the database
 const connection = {
@@ -51,6 +52,7 @@ app.post('/insert', async (req, res) => {
     console.log('User created:');
     res.json('user created');
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -66,8 +68,7 @@ app.get('/select', async (req, res) => {
 
     res.json(result);
   } catch (error) {
-    console.log('Error:', error.message);
-
+    console.error('Error:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -78,20 +79,27 @@ app.put('/update', async (req, res) => {
     await db.users.update(DTO);
     res.json('user updated');
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: error.message });
   }
 });
 
-app.delete('/delete', async (req, res) => { 
+app.delete('/delete', async (req, res) => {
   try {
     const DTO = req.body;
     await db.users.delete(DTO);
     res.json('user deleted');
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: error.message });
   }
-});       
+});
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Internal Server Error' });
+});
 
 // Start the server
 const port = 3000;
