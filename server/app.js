@@ -43,10 +43,10 @@ app.use(bodyParser.json());
 
 // Add a route to create a new user
 app.post('/insert', async (req, res) => {
-    console.log('Hello');
-    
+  console.log('Hello');
+
   try {
-    const DTO = req.body;    
+    const DTO = req.body;
     await db.users.insert(DTO);
     console.log('User created:');
     res.json('user created');
@@ -59,18 +59,39 @@ app.get('/select', async (req, res) => {
   try {
     const DTO = req.body;
     console.log('DTO:', DTO);
-    
+
     const result = await db.users.select(DTO);
-    
+
     // console.log('Result:', result);
-    
+
     res.json(result);
   } catch (error) {
     console.log('Error:', error.message);
-    
+
     res.status(500).json({ error: error.message });
   }
 });
+
+app.put('/update', async (req, res) => {
+  try {
+    const DTO = req.body;
+    await db.users.update(DTO);
+    res.json('user updated');
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.delete('/delete', async (req, res) => { 
+  try {
+    const DTO = req.body;
+    await db.users.delete(DTO);
+    res.json('user deleted');
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});       
+
 
 // Start the server
 const port = 3000;
