@@ -95,12 +95,18 @@ class Model {
 
   async select(dto) {
     try {
+      // Build the WHERE clause
       let condition = '';
       if (dto._condition) {
         condition = this.pgp.as.format(dto._condition, dto);
         delete dto._condition;
+        dto = Object.fromEntries(
+          Object.entries(dto).filter(([key, value]) => value === '')
+        ); // Convert object to array and back to object to remove condition values
+        console.log('DTO:', dto);
       }
 
+      // Build the SELECT query
       const qSelect =
         Object.keys(dto).length === 0 && dto.constructor === Object
           ? `SELECT * FROM ${this.schema.tableName} ${condition};`

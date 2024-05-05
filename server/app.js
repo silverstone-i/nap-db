@@ -62,7 +62,7 @@ app.get('/select', async (req, res) => {
     
     const result = await db.users.select(DTO);
     
-    console.log('Result:', result);
+    // console.log('Result:', result);
     
     res.json(result);
   } catch (error) {
