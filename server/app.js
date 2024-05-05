@@ -77,6 +77,8 @@ app.put('/update', async (req, res) => {
   try {
     const DTO = req.body;
     await db.users.update(DTO);
+    console.log('User updated:');
+    
     res.json('user updated');
   } catch (error) {
     console.error(error);

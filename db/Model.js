@@ -106,7 +106,7 @@ class Model {
               [dto]
             );
 
-      return this.db.any(qSelect);
+      return await this.db.any(qSelect);
     } catch (error) {
       throw new DBError(error.message);
     }
@@ -116,14 +116,19 @@ class Model {
     try {
       if (!this.cs) this.createColumnSet();
       const condition = this.pgp.as.format(dto._condition, dto);
-      
-      const qUpdate = `${this.pgp.helpers.update(dto, this.cs.update)} ${condition};`;
 
-      if (result.rowcount === 0) {
-        throw new DBError('No rows updated');
+      const qUpdate = `${this.pgp.helpers.update(
+        dto,
+        this.cs.update
+      )} ${condition};`;
+      const result = await this.db.result(qUpdate, (a) => a.rowCount);
+      console.log('RESULT', result);
+
+      if (result.rowCount === 0) {
+        throw new DBError('No records found to update.');
       }
     } catch (error) {
-      throw new DBError(error.message);;
+      throw new DBError(error.message);
     }
   }
 
@@ -141,7 +146,7 @@ class Model {
         `DELETE FROM ${this.schema.tableName} ${condition};`,
         [dto]
       );
-      
+
       const result = await this.db.result(qDelete, (a) => a.rowCount);
       if (result.rowCount === 0) {
         throw new DBError('No records found to delete');
