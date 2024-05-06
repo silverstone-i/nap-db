@@ -10,6 +10,22 @@ const schema = {
     age: { type: 'integer', nullable: true, default: 18 },
   },
 };
+const selectAll = [
+  {
+    id: 1,
+    name: 'John Doe',
+    email: 'john@doe.com',
+    age: 30,
+    created_by: 'Admin',
+  },
+  {
+    id: 2,
+    name: 'Jan Doe',
+    email: 'jane@doe.com',
+    age: 25,
+    created_by: 'Admin',
+  },
+];
 
 describe('Model', () => {
   let pgpSpy;
@@ -33,7 +49,7 @@ describe('Model', () => {
       none: jest.fn().mockResolvedValue(),
       one: jest.fn().mockResolvedValue(),
       oneOrNone: jest.fn().mockResolvedValue(null),
-      any: jest.fn().mockResolvedValue([]),
+      any: jest.fn().mockResolvedValue(selectAll),
       result: jest.fn().mockResolvedValue({ rowCount: 1 }),
     };
 
@@ -115,6 +131,73 @@ describe('Model', () => {
       // await expect(model.insert(dto)).rejects.toThrow();
     });
   });
+
+    describe('select', () => {
+      it('should return all records', async () => {
+        const expectedQuery = `SELECT * FROM test_table ;`;
+
+        const result = await model.select({});
+
+        expect(result).toBe(selectAll);
+        expect(dbStub.any).toHaveBeenCalledWith(expectedQuery);
+      });
+
+      it('should return all fields for records that match the condition', async () => {
+        const selected = [
+          {
+            id: 2,
+            name: 'Jane Doe',
+            email: 'jane@doe.com',
+            age: 25,
+            created_by: 'Admin',
+          },
+        ];
+
+        dbStub.any.mockResolvedValue(selected);
+        const dto = {
+          name: 'Jane Doe',
+          _condition: 'WHERE name = ${name}',
+        };
+        const dtoSansCondition = { name: 'Jane Doe' };
+        const expectedCondition = "WHERE name = 'Jane Doe'";
+        const expectedQuery = `SELECT * FROM test_table WHERE name = 'Jane Doe';`;
+
+        const result = await model.select(dto);
+
+        expect(pgpSpy.as.format.mock.results[0].value).toBe(expectedCondition);
+        expect(result).toBe(selected);
+        expect(dbStub.any).toHaveBeenCalledWith(expectedQuery);
+      });
+
+      it('should return selected fields for records that match the condition', async () => {
+        const selected = [
+          {
+            email: 'jane@doe.comm',
+            age: 25,
+          },
+        ];
+
+        dbStub.any.mockResolvedValue(selected);
+
+        const dto = {
+          name: 'Jane Doe',
+          email: '',
+          age: '',
+          _condition: 'WHERE name = ${name}',
+        };
+
+        const dtoSansCondition = { name: 'Jane Doe' };
+
+        const expectedCondition = "WHERE name = 'Jane Doe'";
+        const expectedQuery = `SELECT "email","age" FROM test_table WHERE name = 'Jane Doe';`;
+
+        const result = await model.select(dto);
+
+        expect(pgpSpy.as.format.mock.results[0].value).toBe(expectedCondition);
+        expect(result).toBe(selected);
+        expect(dbStub.any).toHaveBeenCalledWith(expectedQuery);
+      });
+    });
 
   describe('update', () => {
     it('should update a record', async () => {
@@ -220,4 +303,5 @@ describe('Model', () => {
       // await expect(model.delete(dto)).rejects.toThrow();
     });
   });
+
 });
