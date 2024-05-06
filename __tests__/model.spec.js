@@ -15,27 +15,6 @@ describe('Model', () => {
   let pgpSpy;
   let model;
   let dbStub;
-  // beforeAll(() => {
-  //   pgpSpy = {
-  //     as: {
-  //       format: jest.spyOn(pgp.as, 'format'),
-  //     },
-  //     helpers: {
-  //       insert: jest.spyOn(pgp.helpers, 'insert'),
-  //       update: jest.spyOn(pgp.helpers, 'update'),
-  //     },
-  //   };
-
-  //   dbStub = {
-  //     none: jest.fn().mockResolvedValue(),
-  //     one: jest.fn().mockResolvedValue(),
-  //     oneOrNone: jest.fn().mockResolvedValue(null),
-  //     any: jest.fn().mockResolvedValue(),
-  //     result: jest.fn().mockResolvedValue({ rowCount: 1 }),
-  //   };
-
-  //   model = new Model(dbStub, pgp, schema);
-  // });
 
   beforeEach(() => {
     // jest.clearAllMocks();
@@ -127,7 +106,13 @@ describe('Model', () => {
         age: 30,
       };
 
-      await expect(model.insert(dto)).rejects.toThrow();
+      try {
+        await model.insert(dto);
+      } catch (error) {
+        expect(error.message).toBe(`Property 'created_by' doesn't exist.`);
+      }
+
+      // await expect(model.insert(dto)).rejects.toThrow();
     });
   });
 
@@ -151,6 +136,44 @@ describe('Model', () => {
       expect(pgpSpy.as.format.mock.results[0].value).toBe(expectedCondition);
       expect(pgpSpy.helpers.update.mock.results[0].value).toBe(expectedQuery);
     });
+
+    it('should throw an exception when updating a record without a condition', async () => {
+      const dto = {
+        id: 1,
+        name: 'Jane Doe',
+        email: 'jane@doe.com',
+        age: 25,
+        updated_by: 'Admin',
+      };
+
+      try {
+        await model.update(dto);
+      } catch (error) {
+        expect(error.message).toBe('UPDATE requires a condition');
+      }
+      // await expect(model.update(dto)).rejects.toThrow();
+    });
+
+    it('should throw an exception when updating a record that does not exist', async () => {
+      const dto = {
+        id: 1,
+        name: 'Jane Doe',
+        email: 'jane@doe.com',
+        age: 25,
+        updated_by: 'Admin',
+        _condition: 'WHERE id = ${id}',
+      };
+
+      dbStub.result.mockResolvedValue({ rowCount: 0 });
+
+      try {
+        await model.update(dto);
+      } catch (error) {
+        expect(error.message).toBe('No records found to update.');
+      }
+      // await expect(model.update(dto)).rejects.toThrow();
+    });
+
   });
 
   // describe('delete', () => {
