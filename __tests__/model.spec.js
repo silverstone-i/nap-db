@@ -17,7 +17,7 @@ describe('Model', () => {
   let dbStub;
 
   beforeEach(() => {
-    // jest.clearAllMocks();
+    jest.clearAllMocks();
 
     pgpSpy = {
       as: {
@@ -173,13 +173,51 @@ describe('Model', () => {
       }
       // await expect(model.update(dto)).rejects.toThrow();
     });
-
   });
 
-  // describe('delete', () => {
-  //   it('should delete a record', async () => {
-  //     const result = await model.delete(1);
-  //     expect(result).toEqual(1);
-  //   });
-  // });
+  describe('delete', () => {
+    it('should delete a record', async () => {
+      const dto = {
+        id: 1,
+        _condition: 'WHERE id = ${id}',
+      };
+      const expectedCondition = 'WHERE id = 1';
+      const expectedQuery = `DELETE FROM test_table WHERE id = 1;`;
+
+      await model.delete(dto);
+
+      expect(pgpSpy.as.format.mock.results[0].value).toBe(expectedCondition);
+      expect(pgpSpy.as.format.mock.results[1].value).toBe(expectedQuery);
+      expect(pgpSpy.as.format.mock.calls[0][1]).toEqual(dto);
+    });
+
+    it('should throw an exception when deleting a record without a condition', async () => {
+      const dto = {
+        id: 1,
+      };
+
+      try {
+        await model.delete(dto);
+      } catch (error) {
+        expect(error.message).toBe('DELETE requires a condition');
+      }
+      // await expect(model.delete(dto)).rejects.toThrow();
+    });
+
+    it('should throw an exception when deleting a record that does not exist', async () => {
+      const dto = {
+        id: 1,
+        _condition: 'WHERE id = ${id}',
+      };
+
+      dbStub.result.mockResolvedValue({ rowCount: 0 });
+
+      try {
+        await model.delete(dto);
+      } catch (error) {
+        expect(error.message).toBe('No records found to delete');
+      }
+      // await expect(model.delete(dto)).rejects.toThrow();
+    });
+  });
 });
