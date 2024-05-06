@@ -6,14 +6,23 @@ const { DBError } = require('./errors');
 class Model {
   // static csCounter = 0;
   constructor(db, pgp, schema) {
-    this.db = db;
-    this.pgp = pgp;
-    if (!schema.dbSchema) schema.dbSchema = 'public';
-    if (!schema.timeStamps) schema.timeStamps = true;
-    this.schema = JSON.parse(JSON.stringify(schema));
-    // this.csCount = 0;
-    this.cs = this.createColumnSet();
-    // console.log('Model initialized', this.cs !== null);
+    try {
+      if (!db || !pgp)
+        throw new DBError('Invalid database or pg-promise instance');
+      if (!schema || !schema.tableName || !schema.columns)
+        throw new DBError('Invalid schema or table name');
+
+      this.db = db;
+      this.pgp = pgp;
+      if (!schema.dbSchema) schema.dbSchema = 'public';
+      if (!schema.timeStamps) schema.timeStamps = true;
+      this.schema = JSON.parse(JSON.stringify(schema));
+      // this.csCount = 0;
+      this.cs = this.createColumnSet();
+      // console.log('Model initialized', this.cs !== null);
+    } catch (error) {
+      throw new DBError(error.message);
+    }
   }
 
   get columnset() {
@@ -21,9 +30,12 @@ class Model {
   }
 
   async init() {
-    await this.db.none(this._createTableQuery());
+    try {
+      return await this.db.none(this._createTableQuery());
+    } catch (err) {
+      throw new DBError(err);
+    }
   }
-
   _createTableQuery() {
     let columns = Object.entries(this.schema.columns)
       .map(([name, config]) => {
@@ -72,7 +84,11 @@ class Model {
   }
 
   async drop() {
-    await this.db.none(`DROP TABLE IF EXISTS ${this.schema.tableName};`);
+    try {
+      return await this.db.none(`DROP TABLE ${this.schema.tableName};`);
+    } catch (error) {
+      throw new DBError(error.message);
+    }
   }
 
   async insert(dto) {
@@ -162,15 +178,23 @@ class Model {
   }
 
   async truncate() {
-    return this.db.none(`TRUNCATE TABLE ${this.schema.tableName};`);
+    try {
+      return await this.db.none(`TRUNCATE TABLE ${this.schema.tableName};`);
+    } catch (error) {
+      throw new DBError(error.message);
+    }
   }
 
   async count() {
-    return this.db.one(
-      `SELECT COUNT(*) FROM ${this.schema.tableName};`,
-      [],
-      (a) => +a.count
-    );
+    try {
+      return await this.db.one(
+        `SELECT COUNT(*) FROM ${this.schema.tableName};`,
+        [],
+        (a) => +a.count
+      );
+    } catch (error) {
+      throw new DBError(error.message);
+    }
   }
 
   createColumnSet() {
