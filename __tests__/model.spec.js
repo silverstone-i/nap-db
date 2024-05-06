@@ -12,8 +12,34 @@ const schema = {
 };
 
 describe('Model', () => {
+  let pgpSpy;
   let model;
-  beforeAll(() => {
+  let dbStub;
+  // beforeAll(() => {
+  //   pgpSpy = {
+  //     as: {
+  //       format: jest.spyOn(pgp.as, 'format'),
+  //     },
+  //     helpers: {
+  //       insert: jest.spyOn(pgp.helpers, 'insert'),
+  //       update: jest.spyOn(pgp.helpers, 'update'),
+  //     },
+  //   };
+
+  //   dbStub = {
+  //     none: jest.fn().mockResolvedValue(),
+  //     one: jest.fn().mockResolvedValue(),
+  //     oneOrNone: jest.fn().mockResolvedValue(null),
+  //     any: jest.fn().mockResolvedValue(),
+  //     result: jest.fn().mockResolvedValue({ rowCount: 1 }),
+  //   };
+
+  //   model = new Model(dbStub, pgp, schema);
+  // });
+
+  beforeEach(() => {
+    // jest.clearAllMocks();
+
     pgpSpy = {
       as: {
         format: jest.spyOn(pgp.as, 'format'),
@@ -29,7 +55,7 @@ describe('Model', () => {
       one: jest.fn().mockResolvedValue(),
       oneOrNone: jest.fn().mockResolvedValue(null),
       any: jest.fn().mockResolvedValue([]),
-      result: jest.fn().mockResolvedValue(1),
+      result: jest.fn().mockResolvedValue({ rowCount: 1 }),
     };
 
     model = new Model(dbStub, pgp, schema);
@@ -79,6 +105,8 @@ describe('Model', () => {
         email: 'john@doe.com',
         age: 30,
         created_by: 'Admin',
+        address: '123 Main St',
+        phone: '555-1234',
       };
       const expectedQuery =
         'INSERT INTO "public"."test_table"("name","email","age","created_by") VALUES(\'John Doe\',\'john@doe.com\',30,\'Admin\')';
@@ -103,17 +131,27 @@ describe('Model', () => {
     });
   });
 
-  // describe('update', () => {
-  //   it('should update a record', async () => {
-  //     const data = {
-  //       name: 'Jane Doe',
-  //       email: 'jane@doe.com',
-  //       age: 25,
-  //     };
-  //     const result = await model.update(1, data);
-  //     expect(result).toEqual({ id: 1, ...data });
-  //   });
-  // });
+  describe('update', () => {
+    it('should update a record', async () => {
+      const dto = {
+        id: 1,
+        name: 'Jane Doe',
+        email: 'jane@doe.com',
+        age: 25,
+        updated_by: 'Admin',
+        _condition: 'WHERE id = ${id}',
+      };
+      const expectedCondition = 'WHERE id = 1';
+      const expectedQuery = `UPDATE "public"."test_table" SET "name"='Jane Doe',"email"='jane@doe.com',"age"=25,"updated_at"=CURRENT_TIMESTAMP,"updated_by"='Admin'`;
+
+      await model.update(dto);
+
+      expect(pgpSpy.as.format).toHaveBeenCalledWith(dto._condition, dto);
+      expect(pgpSpy.helpers.update).toHaveBeenCalledWith(dto, model.cs.update);
+      expect(pgpSpy.as.format.mock.results[0].value).toBe(expectedCondition);
+      expect(pgpSpy.helpers.update.mock.results[0].value).toBe(expectedQuery);
+    });
+  });
 
   // describe('delete', () => {
   //   it('should delete a record', async () => {

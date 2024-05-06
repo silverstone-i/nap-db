@@ -115,14 +115,19 @@ class Model {
   async update(dto) {
     try {
       if (!this.cs) this.createColumnSet();
-      const condition = this.pgp.as.format(dto._condition, dto);
+      let condition = '';
+      if (dto._condition) {
+        condition = this.pgp.as.format(dto._condition, dto);
+      } else {
+        throw new DBError('UPDATE requires a condition');
+      }
 
       const qUpdate = `${this.pgp.helpers.update(
         dto,
         this.cs.update
       )} ${condition};`;
+
       const result = await this.db.result(qUpdate, (a) => a.rowCount);
-      console.log('RESULT', result);
 
       if (result.rowCount === 0) {
         throw new DBError('No records found to update.');
@@ -139,7 +144,7 @@ class Model {
         condition = this.pgp.as.format(dto._condition, dto);
         delete dto._condition;
       } else {
-        throw new DBError('Delete requires a condition');
+        throw new DBError('DELETE requires a condition');
       }
 
       const qDelete = this.pgp.as.format(
