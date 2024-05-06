@@ -132,72 +132,72 @@ describe('Model', () => {
     });
   });
 
-    describe('select', () => {
-      it('should return all records', async () => {
-        const expectedQuery = `SELECT * FROM test_table ;`;
+  describe('select', () => {
+    it('should return all records', async () => {
+      const expectedQuery = `SELECT * FROM test_table ;`;
 
-        const result = await model.select({});
+      const result = await model.select({});
 
-        expect(result).toBe(selectAll);
-        expect(dbStub.any).toHaveBeenCalledWith(expectedQuery);
-      });
-
-      it('should return all fields for records that match the condition', async () => {
-        const selected = [
-          {
-            id: 2,
-            name: 'Jane Doe',
-            email: 'jane@doe.com',
-            age: 25,
-            created_by: 'Admin',
-          },
-        ];
-
-        dbStub.any.mockResolvedValue(selected);
-        const dto = {
-          name: 'Jane Doe',
-          _condition: 'WHERE name = ${name}',
-        };
-        const dtoSansCondition = { name: 'Jane Doe' };
-        const expectedCondition = "WHERE name = 'Jane Doe'";
-        const expectedQuery = `SELECT * FROM test_table WHERE name = 'Jane Doe';`;
-
-        const result = await model.select(dto);
-
-        expect(pgpSpy.as.format.mock.results[0].value).toBe(expectedCondition);
-        expect(result).toBe(selected);
-        expect(dbStub.any).toHaveBeenCalledWith(expectedQuery);
-      });
-
-      it('should return selected fields for records that match the condition', async () => {
-        const selected = [
-          {
-            email: 'jane@doe.comm',
-            age: 25,
-          },
-        ];
-
-        dbStub.any.mockResolvedValue(selected);
-
-        const dto = {
-          name: 'Jane Doe',
-          email: '',
-          age: '',
-          _condition: 'WHERE name = ${name}',
-        };
-
-        const dtoSansCondition = { name: 'Jane Doe' };
-
-        const expectedCondition = "WHERE name = 'Jane Doe'";
-        const expectedQuery = `SELECT "email","age" FROM test_table WHERE name = 'Jane Doe';`;
-
-        const result = await model.select(dto);
-
-        expect(pgpSpy.as.format.mock.results[0].value).toBe(expectedCondition);
-        expect(result).toBe(selected);
-        expect(dbStub.any).toHaveBeenCalledWith(expectedQuery);
-      });
+      expect(result).toBe(selectAll);
+      expect(dbStub.any).toHaveBeenCalledWith(expectedQuery);
     });
+
+    it('should return all fields for records that match the condition', async () => {
+      const selected = [
+        {
+          id: 2,
+          name: 'Jane Doe',
+          email: 'jane@doe.com',
+          age: 25,
+          created_by: 'Admin',
+        },
+      ];
+
+      dbStub.any.mockResolvedValue(selected);
+      const dto = {
+        name: 'Jane Doe',
+        _condition: 'WHERE name = ${name}',
+      };
+      const dtoSansCondition = { name: 'Jane Doe' };
+      const expectedCondition = "WHERE name = 'Jane Doe'";
+      const expectedQuery = `SELECT * FROM test_table WHERE name = 'Jane Doe';`;
+
+      const result = await model.select(dto);
+
+      expect(pgpSpy.as.format.mock.results[0].value).toBe(expectedCondition);
+      expect(result).toBe(selected);
+      expect(dbStub.any).toHaveBeenCalledWith(expectedQuery);
+    });
+
+    it('should return selected fields for records that match the condition', async () => {
+      const selected = [
+        {
+          email: 'jane@doe.comm',
+          age: 25,
+        },
+      ];
+
+      dbStub.any.mockResolvedValue(selected);
+
+      const dto = {
+        name: 'Jane Doe',
+        email: '',
+        age: '',
+        _condition: 'WHERE name = ${name}',
+      };
+
+      const dtoSansCondition = { name: 'Jane Doe' };
+
+      const expectedCondition = "WHERE name = 'Jane Doe'";
+      const expectedQuery = `SELECT "email","age" FROM test_table WHERE name = 'Jane Doe';`;
+
+      const result = await model.select(dto);
+
+      expect(pgpSpy.as.format.mock.results[0].value).toBe(expectedCondition);
+      expect(result).toBe(selected);
+      expect(dbStub.any).toHaveBeenCalledWith(expectedQuery);
+    });
+  });
 
   describe('update', () => {
     it('should update a record', async () => {
@@ -304,4 +304,104 @@ describe('Model', () => {
     });
   });
 
+  describe('createColumnSet', () => {
+    it('should create a column set based on schema', () => {
+      expect(model.cs).toBeDefined();
+      expect(model.cs.test_table.columns.map((c) => c.name)).toEqual([
+        'name',
+        'email',
+        'age',
+      ]);
+      expect(model.cs.insert.columns.map((c) => c.name)).toEqual([
+        'name',
+        'email',
+        'age',
+        'created_by',
+      ]);
+      expect(model.cs.update.columns.map((c) => c.name)).toEqual([
+        'name',
+        'email',
+        'age',
+        'updated_at',
+        'updated_by',
+      ]);
+    });
+  });
+
+  describe('init', () => {
+    it('should create a table based on schema - no foreign keys or unique constraints', async () => {
+      const expectedQuery = `CREATE TABLE IF NOT EXISTS test_table (id serial PRIMARY KEY NOT NULL,name varchar(255) NOT NULL,email varchar(255) NOT NULL,age integer DEFAULT 18,created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,created_by varchar(50) NOT NULL,updated_at timestamptz NULL DEFAULT NULL,updated_by varchar(50) NULL DEFAULT NULL);`;
+
+      await model.init();
+
+      const mockReceived = dbStub.none.mock.calls[0][0];
+      const normalizedReceived = mockReceived.replace(/\r?\n|\r/g, '');
+
+      expect(normalizedReceived).toMatch(expectedQuery);
+    });
+
+    it('should create a table based on schema - with foreign keys and no unique constraints', async () => {
+      model.schema.foreignKeys = {
+        fk_test_table: {
+          referenceTable: 'test_table2',
+          referenceColumns: ['id'],
+          onDelete: 'CASCADE',
+          onUpdate: 'CASCADE',
+        },
+      };
+
+      const expectedQuery = `CREATE TABLE IF NOT EXISTS test_table (id serial PRIMARY KEY NOT NULL,name varchar(255) NOT NULL,email varchar(255) NOT NULL,age integer DEFAULT 18,created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,created_by varchar(50) NOT NULL,updated_at timestamptz NULL DEFAULT NULL,updated_by varchar(50) NULL DEFAULT NULL,FOREIGN KEY (fk_test_table) REFERENCES test_table2(id) ON DELETE CASCADE ON UPDATE CASCADE);`;
+
+      await model.init();
+
+      const mockReceived = dbStub.none.mock.calls[0][0];
+      const normalizedReceived = mockReceived.replace(/\r?\n|\r/g, '');
+
+      expect(normalizedReceived).toMatch(expectedQuery);
+    });
+
+    it('should create a table based on schema - with unique constraints and no foreign keys', async () => {
+      model.schema.uniqueConstraints = {
+        uq_test_table: {
+          columns: ['name', 'email'],
+        },
+      };
+
+      const expectedQuery = `CREATE TABLE IF NOT EXISTS test_table (id serial PRIMARY KEY NOT NULL,name varchar(255) NOT NULL,email varchar(255) NOT NULL,age integer DEFAULT 18,created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,created_by varchar(50) NOT NULL,updated_at timestamptz NULL DEFAULT NULL,updated_by varchar(50) NULL DEFAULT NULL,CONSTRAINT uq_test_table UNIQUE (name,email));`;
+
+      await model.init();
+
+      const mockReceived = dbStub.none.mock.calls[0][0];
+      const normalizedReceived = mockReceived.replace(/\r?\n|\r/g, '');
+
+      expect(normalizedReceived).toMatch(expectedQuery);
+    });
+
+    it('should create a table based on schema - with foreign keys and unique constraints', async () => {
+      model.schema.foreignKeys = {
+        fk_test_table: {
+          referenceTable: 'test_table2',
+          referenceColumns: ['id'],
+          onDelete: 'CASCADE',
+          onUpdate: 'CASCADE',
+        },
+      };
+      model.schema.uniqueConstraints = {
+        uq_test_table: {
+          columns: ['name', 'email'],
+        },
+      };
+
+      const expectedQuery = `CREATE TABLE IF NOT EXISTS test_table (id serial PRIMARY KEY NOT NULL,name varchar(255) NOT NULL,email varchar(255) NOT NULL,age integer DEFAULT 18,created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,created_by varchar(50) NOT NULL,updated_at timestamptz NULL DEFAULT NULL,updated_by varchar(50) NULL DEFAULT NULL,FOREIGN KEY (fk_test_table) REFERENCES test_table2(id) ON DELETE CASCADE ON UPDATE CASCADE,CONSTRAINT uq_test_table UNIQUE (name,email));`;
+
+      await model.init();
+
+      const mockReceived = dbStub.none.mock.calls[0][0];
+      const normalizedReceived = mockReceived.replace(/\r?\n|\r/g, '');
+
+      expect(normalizedReceived).toMatch(expectedQuery);
+    });
+
+
+  });
 });
