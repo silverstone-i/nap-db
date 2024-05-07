@@ -482,6 +482,31 @@ describe('Model', () => {
       }
       // await expect(model.update(dto)).rejects.toThrow();
     });
+
+    it('should correctly transform the result using (a) => a.rowCount', async () => {
+      const dto = {
+        id: 1,
+        name: 'Jane Doe',
+        email: 'jane@doe.com',
+        age: 25,
+        updated_by: 'Admin',
+        _condition: 'WHERE id = ${id}',
+      };
+
+      dbStub.result.mockResolvedValue({ rowCount: 1 });
+
+      const result = await model.update(dto);
+
+      expect(result).toStrictEqual({ rowCount: 1 });
+      expect(dbStub.result).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.any(Function)
+      );
+
+      // Check the transformation function directly
+      const transformFunction = dbStub.result.mock.calls[0][1];
+      expect(transformFunction({ rowCount: 10 })).toStrictEqual(10);
+    });
   });
 
   describe('delete', () => {
@@ -527,6 +552,27 @@ describe('Model', () => {
         expect(error.message).toBe('No records found to delete');
       }
       // await expect(model.delete(dto)).rejects.toThrow();
+    });
+
+    it('should correctly transform the result using (a) => a.rowCount', async () => {
+      const dto = {
+        id: 1,
+        _condition: 'WHERE id = ${id}',
+      };
+
+      dbStub.result.mockResolvedValue({ rowCount: 1 });
+
+      const result = await model.delete(dto);
+
+      expect(result).toStrictEqual({ rowCount: 1 });
+      expect(dbStub.result).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.any(Function)
+      );
+
+      // Check the transformation function directly
+      const transformFunction = dbStub.result.mock.calls[0][1];
+      expect(transformFunction({ rowCount: 10 })).toStrictEqual(10);
     });
   });
 
@@ -602,7 +648,10 @@ describe('Model', () => {
       await model.count(dto);
 
       expect(pgpSpy.as.format.mock.results[0].value).toBe(expectedCondition);
-      expect(dbStub.one).toHaveBeenCalledWith(expectedQuery, expect.any(Function));
+      expect(dbStub.one).toHaveBeenCalledWith(
+        expectedQuery,
+        expect.any(Function)
+      );
     });
   });
 

@@ -159,6 +159,8 @@ class Model {
       if (result.rowCount === 0) {
         throw new DBError('No records found to update.');
       }
+
+      return result;
     } catch (error) {
       throw new DBError(error.message);
     }
@@ -183,6 +185,8 @@ class Model {
       if (result.rowCount === 0) {
         throw new DBError('No records found to delete');
       }
+
+      return result;
     } catch (error) {
       throw new DBError(error.message);
     }
