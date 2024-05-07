@@ -97,6 +97,17 @@ app.delete('/delete', async (req, res) => {
   }
 });
 
+app.get('/count', async (req, res) => {
+  try {
+    const dto = req.body;
+    const count = await db.users.count(dto);
+    res.json(count);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);

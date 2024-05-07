@@ -199,6 +199,23 @@ describe('Model', () => {
         expect(error.message).toBe('Failed to create table.');
       }
     });
+
+    it('calling Model.createTableQuery should generate the create table SQL', () => {
+      const expectedQuery = `CREATE TABLE IF NOT EXISTS test_table (id serial PRIMARY KEY NOT NULL,name varchar(255) NOT NULL,email varchar(255) NOT NULL,age integer DEFAULT 18,created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,created_by varchar(50) NOT NULL,updated_at timestamptz NULL DEFAULT NULL,updated_by varchar(50) NULL DEFAULT NULL);`;
+
+      const actualQuery = model.createTableQuery().replace(/\r?\n|\r/g, '');
+
+      expect(actualQuery).toBe(expectedQuery);
+    });
+
+    it('should not generate timeStamps columns when schema.timeStamps is false', () => {
+      model.schema.timeStamps = false;
+      const expectedQuery = `CREATE TABLE IF NOT EXISTS test_table (id serial PRIMARY KEY NOT NULL,name varchar(255) NOT NULL,email varchar(255) NOT NULL,age integer DEFAULT 18);`;
+
+      const actualQuery = model.createTableQuery().replace(/\r?\n|\r/g, '');
+
+      expect(actualQuery).toBe(expectedQuery);
+    });
   });
 
   describe('drop', () => {
@@ -536,7 +553,7 @@ describe('Model', () => {
       const expectedQuery = `SELECT COUNT(*) FROM test_table;`;
       dbStub.one.mockResolvedValue({ count: 2 });
 
-      await model.count();
+      result = await model.count();
 
       expect(dbStub.one).toHaveBeenCalledWith(
         expectedQuery,
@@ -554,6 +571,20 @@ describe('Model', () => {
         expect(error.message).toBe('Failed to count records.');
       }
       // await expect(model.count()).rejects.toThrow();
+    });
+
+    it('should correctly transform the result using (a) => +a.count', async () => {
+      dbStub.one.mockResolvedValue({ count: '5' });
+      const result = await model.count();
+      expect(result).toStrictEqual({ count: '5' });
+      expect(dbStub.one).toHaveBeenCalledWith(
+        `SELECT COUNT(*) FROM ${model.schema.tableName};`,
+        expect.any(Function)
+      );
+
+      // Check the transformation function directly
+      const transformFunction = dbStub.one.mock.calls[0][1];
+      expect(transformFunction({ count: '10' })).toStrictEqual(10);
     });
 
     // it('should return the number of records for a specific condition', async () => {
@@ -593,6 +624,22 @@ describe('Model', () => {
         'updated_at',
         'updated_by',
       ]);
+    });
+
+    it('should return the Model.cs object when calling createColumnSet multiple times', () => {
+      const cs1 = model.createColumnSet();
+      const cs2 = model.createColumnSet();
+
+      expect(cs1).toBe(cs2);
+    });
+
+    it('should add cnd: true property to primary key columns that are not serial ', () => {
+      schema.columns.email.primaryKey = true;
+
+      model = new Model(dbStub, pgp, schema);
+
+      emailColumn = model.cs.test_table.columns.find((c) => c.name === 'email');
+      expect(emailColumn.cnd).toBe(true);
     });
   });
 });

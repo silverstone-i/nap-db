@@ -44,12 +44,12 @@ class Model {
 
   async init() {
     try {
-      return await this.db.none(this._createTableQuery());
+      return await this.db.none(this.createTableQuery());
     } catch (err) {
       throw new DBError('Failed to create table.', err.message);
     }
   }
-  _createTableQuery() {
+  createTableQuery() {
     let columns = Object.entries(this.schema.columns)
       .map(([name, config]) => {
         let column = `${name} ${config.type}`;
@@ -106,8 +106,7 @@ class Model {
 
   async insert(dto) {
     try {
-      if (!this.cs) this.createColumnSet();
-      const qInsert = this.pgp.helpers.insert(dto, this.cs.insert);
+        const qInsert = this.pgp.helpers.insert(dto, this.cs.insert);
       return await this.db.none(qInsert, dto);
     } catch (error) {
       throw new DBError(error.message);
@@ -143,7 +142,6 @@ class Model {
 
   async update(dto) {
     try {
-      if (!this.cs) this.createColumnSet();
       let condition = '';
       if (dto._condition) {
         condition = this.pgp.as.format(dto._condition, dto);
@@ -198,11 +196,15 @@ class Model {
     }
   }
 
-  async count() {
+  async count(dto) {
     try {
+      let condition = '';
+      if (dto._condition) {
+        condition = this.pgp.as.format(dto._condition, dto);
+      }
+
       const count = await this.db.one(
-        `SELECT COUNT(*) FROM ${this.schema.tableName};`,
-        // [],
+        `SELECT COUNT(*) FROM ${this.schema.tableName} ${condition};`,
         (a) => +a.count
       );
 
@@ -250,6 +252,8 @@ class Model {
 
       return cs;
     }
+
+    return this.cs;
   }
 }
 
