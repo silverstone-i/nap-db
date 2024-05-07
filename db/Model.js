@@ -7,10 +7,23 @@ class Model {
   // static csCounter = 0;
   constructor(db, pgp, schema) {
     try {
-      if (!db || !pgp)
-        throw new DBError('Invalid database or pg-promise instance');
-      if (!schema || !schema.tableName || !schema.columns)
-        throw new DBError('Invalid schema or table name');
+      if (!db || !pgp) {
+        const message = !db
+          ? 'Invalid database.'
+          : 'Invalid pg-promise instance.';
+
+        throw new DBError(message);
+      }
+
+      if (!schema || !schema.tableName || !schema.columns) {
+        const message = !schema
+          ? 'Invalid schema.'
+          : !schema.tableName
+          ? 'Table name must be defined.'
+          : 'Schema requires at least one columns.';
+
+        throw new DBError(message);
+      }
 
       this.db = db;
       this.pgp = pgp;
@@ -33,7 +46,7 @@ class Model {
     try {
       return await this.db.none(this._createTableQuery());
     } catch (err) {
-      throw new DBError(err);
+      throw new DBError('Failed to create table.', err.message);
     }
   }
   _createTableQuery() {
@@ -187,11 +200,13 @@ class Model {
 
   async count() {
     try {
-      return await this.db.one(
+      const count = await this.db.one(
         `SELECT COUNT(*) FROM ${this.schema.tableName};`,
-        [],
+        // [],
         (a) => +a.count
       );
+
+      return count;
     } catch (error) {
       throw new DBError(error.message);
     }

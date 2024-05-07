@@ -60,6 +60,167 @@ describe('Model', () => {
     jest.restoreAllMocks();
   });
 
+  describe('constructor', () => {
+    it('should create a new model', () => {
+      expect(model).toBeDefined();
+      expect(model.db).toStrictEqual(dbStub);
+      expect(model.pgp).toStrictEqual(pgp);
+      expect(model.schema).toStrictEqual(schema);
+      expect(model.cs).toBeDefined();
+    });
+
+    it('should throw an exception if the database object is not defined', () => {
+      try {
+        new Model(null, pgp, schema);
+      } catch (error) {
+        expect(error.message).toBe('Invalid database.');
+      }
+    });
+
+    it('should throw an exception if the pg-promise object is not defined', () => {
+      try {
+        new Model(dbStub, null, schema);
+      } catch (error) {
+        expect(error.message).toBe('Invalid pg-promise instance.');
+      }
+    });
+
+    it('should throw an exception if the schema is not defined', () => {
+      try {
+        new Model(dbStub, pgp, null);
+      } catch (error) {
+        expect(error.message).toBe('Invalid schema.');
+      }
+    });
+
+    it('should throw an exception if the schema does not have a tableName', () => {
+      try {
+        new Model(dbStub, pgp, {});
+      } catch (error) {
+        expect(error.message).toBe('Table name must be defined.');
+      }
+    });
+
+    it('should throw an exception if the schema does not have columns', () => {
+      try {
+        new Model(dbStub, pgp, { tableName: 'test_table' });
+      } catch (error) {
+        expect(error.message).toBe('Schema requires at least one columns.');
+      }
+    });
+  });
+
+  describe('get columnset', () => {
+    it('should return the column set', () => {
+      expect(model.columnset).toBeDefined();
+    });
+  });
+
+  describe('init', () => {
+    it('should create a table based on schema - no foreign keys or unique constraints', async () => {
+      const expectedQuery = `CREATE TABLE IF NOT EXISTS test_table (id serial PRIMARY KEY NOT NULL,name varchar(255) NOT NULL,email varchar(255) NOT NULL,age integer DEFAULT 18,created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,created_by varchar(50) NOT NULL,updated_at timestamptz NULL DEFAULT NULL,updated_by varchar(50) NULL DEFAULT NULL);`;
+
+      await model.init();
+
+      const mockReceived = dbStub.none.mock.calls[0][0];
+      const normalizedReceived = mockReceived.replace(/\r?\n|\r/g, '');
+
+      expect(normalizedReceived).toMatch(expectedQuery);
+    });
+
+    it('should create a table based on schema - with foreign keys and no unique constraints', async () => {
+      model.schema.foreignKeys = {
+        fk_test_table: {
+          referenceTable: 'test_table2',
+          referenceColumns: ['id'],
+          onDelete: 'CASCADE',
+          onUpdate: 'CASCADE',
+        },
+      };
+
+      const expectedQuery = `CREATE TABLE IF NOT EXISTS test_table (id serial PRIMARY KEY NOT NULL,name varchar(255) NOT NULL,email varchar(255) NOT NULL,age integer DEFAULT 18,created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,created_by varchar(50) NOT NULL,updated_at timestamptz NULL DEFAULT NULL,updated_by varchar(50) NULL DEFAULT NULL,FOREIGN KEY (fk_test_table) REFERENCES test_table2(id) ON DELETE CASCADE ON UPDATE CASCADE);`;
+
+      await model.init();
+
+      const mockReceived = dbStub.none.mock.calls[0][0];
+      const normalizedReceived = mockReceived.replace(/\r?\n|\r/g, '');
+
+      expect(normalizedReceived).toMatch(expectedQuery);
+    });
+
+    it('should create a table based on schema - with unique constraints and no foreign keys', async () => {
+      model.schema.uniqueConstraints = {
+        uq_test_table: {
+          columns: ['name', 'email'],
+        },
+      };
+
+      const expectedQuery = `CREATE TABLE IF NOT EXISTS test_table (id serial PRIMARY KEY NOT NULL,name varchar(255) NOT NULL,email varchar(255) NOT NULL,age integer DEFAULT 18,created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,created_by varchar(50) NOT NULL,updated_at timestamptz NULL DEFAULT NULL,updated_by varchar(50) NULL DEFAULT NULL,CONSTRAINT uq_test_table UNIQUE (name,email));`;
+
+      await model.init();
+
+      const mockReceived = dbStub.none.mock.calls[0][0];
+      const normalizedReceived = mockReceived.replace(/\r?\n|\r/g, '');
+
+      expect(normalizedReceived).toMatch(expectedQuery);
+    });
+
+    it('should create a table based on schema - with foreign keys and unique constraints', async () => {
+      model.schema.foreignKeys = {
+        fk_test_table: {
+          referenceTable: 'test_table2',
+          referenceColumns: ['id'],
+          onDelete: 'CASCADE',
+          onUpdate: 'CASCADE',
+        },
+      };
+      model.schema.uniqueConstraints = {
+        uq_test_table: {
+          columns: ['name', 'email'],
+        },
+      };
+
+      const expectedQuery = `CREATE TABLE IF NOT EXISTS test_table (id serial PRIMARY KEY NOT NULL,name varchar(255) NOT NULL,email varchar(255) NOT NULL,age integer DEFAULT 18,created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,created_by varchar(50) NOT NULL,updated_at timestamptz NULL DEFAULT NULL,updated_by varchar(50) NULL DEFAULT NULL,FOREIGN KEY (fk_test_table) REFERENCES test_table2(id) ON DELETE CASCADE ON UPDATE CASCADE,CONSTRAINT uq_test_table UNIQUE (name,email));`;
+
+      await model.init();
+
+      const mockReceived = dbStub.none.mock.calls[0][0];
+      const normalizedReceived = mockReceived.replace(/\r?\n|\r/g, '');
+
+      expect(normalizedReceived).toMatch(expectedQuery);
+    });
+
+    it('should throw an exception when creating a table fails', async () => {
+      dbStub.none.mockRejectedValue(new Error('Failed to create table.'));
+
+      try {
+        await model.init();
+      } catch (error) {
+        expect(error.message).toBe('Failed to create table.');
+      }
+    });
+  });
+
+  describe('drop', () => {
+    it('should drop the table', async () => {
+      const expectedQuery = `DROP TABLE test_table;`;
+
+      await model.drop();
+
+      expect(dbStub.none).toHaveBeenCalledWith(expectedQuery);
+    });
+
+    it('should throw an exception when dropping a table fails', async () => {
+      dbStub.none.mockRejectedValue(new Error('Failed to drop table.'));
+
+      try {
+        await model.drop();
+      } catch (error) {
+        expect(error.message).toBe('Failed to drop table.');
+      }
+    });
+  });
+
   describe('insert', () => {
     it('should create a new record', async () => {
       const dto = {
@@ -197,6 +358,51 @@ describe('Model', () => {
       expect(result).toBe(selected);
       expect(dbStub.any).toHaveBeenCalledWith(expectedQuery);
     });
+
+    it('should throw an exception when selecting records without a condition', async () => {
+      const dto = {
+        name: 'Jane Doe',
+      };
+
+      try {
+        await model.select(dto);
+      } catch (error) {
+        expect(error.message).toBe('SELECT requires a condition');
+      }
+      // await expect(model.select(dto)).rejects.toThrow();
+    });
+
+    it('should throw an exception when no records are found', async () => {
+      const dto = {
+        name: 'Jane Doe',
+        _condition: 'WHERE name = ${name}',
+      };
+
+      dbStub.any.mockResolvedValue([]);
+
+      try {
+        await model.select(dto);
+      } catch (error) {
+        expect(error.message).toBe('No records found.');
+      }
+      // await expect(model.select(dto)).rejects.toThrow();
+    });
+
+    it('should throw an exception when selecting records fails', async () => {
+      const dto = {
+        name: 'Jane Doe',
+        _condition: 'WHERE name = ${name}',
+      };
+
+      dbStub.any.mockRejectedValue(new Error('Failed to select records.'));
+
+      try {
+        await model.select(dto);
+      } catch (error) {
+        expect(error.message).toBe('Failed to select records.');
+      }
+      // await expect(model.select(dto)).rejects.toThrow();
+    });
   });
 
   describe('update', () => {
@@ -304,6 +510,68 @@ describe('Model', () => {
     });
   });
 
+  describe('truncate', () => {
+    it('should truncate the table', async () => {
+      const expectedQuery = `TRUNCATE TABLE test_table;`;
+
+      await model.truncate();
+
+      expect(dbStub.none).toHaveBeenCalledWith(expectedQuery);
+    });
+
+    it('should throw an exception when truncating the table fails', async () => {
+      dbStub.none.mockRejectedValue(new Error('Failed to truncate table.'));
+
+      try {
+        await model.truncate();
+      } catch (error) {
+        expect(error.message).toBe('Failed to truncate table.');
+      }
+      // await expect(model.truncate()).rejects.toThrow();
+    });
+  });
+
+  describe('count', () => {
+    it('should return the number of records', async () => {
+      const expectedQuery = `SELECT COUNT(*) FROM test_table;`;
+      dbStub.one.mockResolvedValue({ count: 2 });
+
+      await model.count();
+
+      expect(dbStub.one).toHaveBeenCalledWith(
+        expectedQuery,
+        expect.any(Function)
+      );
+      expect(result).toStrictEqual({ count: 2 });
+    });
+
+    it('should throw an exception when counting records fails', async () => {
+      dbStub.one.mockRejectedValue(new Error('Failed to count records.'));
+
+      try {
+        await model.count();
+      } catch (error) {
+        expect(error.message).toBe('Failed to count records.');
+      }
+      // await expect(model.count()).rejects.toThrow();
+    });
+
+    // it('should return the number of records for a specific condition', async () => {
+    //   const dto = {
+    //     name: 'Jane Doe',
+    //     _condition: 'WHERE name = ${name}',
+    //   };
+    //   const expectedCondition = "WHERE name = 'Jane Doe'";
+    //   const expectedQuery = `SELECT COUNT(*) FROM test_table WHERE name = 'Jane Doe';`;
+    //   dbStub.one.mockResolvedValue({ count: 1 });
+
+    //   await model.count(dto);
+
+    //   expect(pgpSpy.as.format.mock.results[0].value).toBe(expectedCondition);
+    //   expect(dbStub.one).toHaveBeenCalledWith(expectedQuery, expect.any(Function));
+    // });
+  });
+
   describe('createColumnSet', () => {
     it('should create a column set based on schema', () => {
       expect(model.cs).toBeDefined();
@@ -326,82 +594,5 @@ describe('Model', () => {
         'updated_by',
       ]);
     });
-  });
-
-  describe('init', () => {
-    it('should create a table based on schema - no foreign keys or unique constraints', async () => {
-      const expectedQuery = `CREATE TABLE IF NOT EXISTS test_table (id serial PRIMARY KEY NOT NULL,name varchar(255) NOT NULL,email varchar(255) NOT NULL,age integer DEFAULT 18,created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,created_by varchar(50) NOT NULL,updated_at timestamptz NULL DEFAULT NULL,updated_by varchar(50) NULL DEFAULT NULL);`;
-
-      await model.init();
-
-      const mockReceived = dbStub.none.mock.calls[0][0];
-      const normalizedReceived = mockReceived.replace(/\r?\n|\r/g, '');
-
-      expect(normalizedReceived).toMatch(expectedQuery);
-    });
-
-    it('should create a table based on schema - with foreign keys and no unique constraints', async () => {
-      model.schema.foreignKeys = {
-        fk_test_table: {
-          referenceTable: 'test_table2',
-          referenceColumns: ['id'],
-          onDelete: 'CASCADE',
-          onUpdate: 'CASCADE',
-        },
-      };
-
-      const expectedQuery = `CREATE TABLE IF NOT EXISTS test_table (id serial PRIMARY KEY NOT NULL,name varchar(255) NOT NULL,email varchar(255) NOT NULL,age integer DEFAULT 18,created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,created_by varchar(50) NOT NULL,updated_at timestamptz NULL DEFAULT NULL,updated_by varchar(50) NULL DEFAULT NULL,FOREIGN KEY (fk_test_table) REFERENCES test_table2(id) ON DELETE CASCADE ON UPDATE CASCADE);`;
-
-      await model.init();
-
-      const mockReceived = dbStub.none.mock.calls[0][0];
-      const normalizedReceived = mockReceived.replace(/\r?\n|\r/g, '');
-
-      expect(normalizedReceived).toMatch(expectedQuery);
-    });
-
-    it('should create a table based on schema - with unique constraints and no foreign keys', async () => {
-      model.schema.uniqueConstraints = {
-        uq_test_table: {
-          columns: ['name', 'email'],
-        },
-      };
-
-      const expectedQuery = `CREATE TABLE IF NOT EXISTS test_table (id serial PRIMARY KEY NOT NULL,name varchar(255) NOT NULL,email varchar(255) NOT NULL,age integer DEFAULT 18,created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,created_by varchar(50) NOT NULL,updated_at timestamptz NULL DEFAULT NULL,updated_by varchar(50) NULL DEFAULT NULL,CONSTRAINT uq_test_table UNIQUE (name,email));`;
-
-      await model.init();
-
-      const mockReceived = dbStub.none.mock.calls[0][0];
-      const normalizedReceived = mockReceived.replace(/\r?\n|\r/g, '');
-
-      expect(normalizedReceived).toMatch(expectedQuery);
-    });
-
-    it('should create a table based on schema - with foreign keys and unique constraints', async () => {
-      model.schema.foreignKeys = {
-        fk_test_table: {
-          referenceTable: 'test_table2',
-          referenceColumns: ['id'],
-          onDelete: 'CASCADE',
-          onUpdate: 'CASCADE',
-        },
-      };
-      model.schema.uniqueConstraints = {
-        uq_test_table: {
-          columns: ['name', 'email'],
-        },
-      };
-
-      const expectedQuery = `CREATE TABLE IF NOT EXISTS test_table (id serial PRIMARY KEY NOT NULL,name varchar(255) NOT NULL,email varchar(255) NOT NULL,age integer DEFAULT 18,created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,created_by varchar(50) NOT NULL,updated_at timestamptz NULL DEFAULT NULL,updated_by varchar(50) NULL DEFAULT NULL,FOREIGN KEY (fk_test_table) REFERENCES test_table2(id) ON DELETE CASCADE ON UPDATE CASCADE,CONSTRAINT uq_test_table UNIQUE (name,email));`;
-
-      await model.init();
-
-      const mockReceived = dbStub.none.mock.calls[0][0];
-      const normalizedReceived = mockReceived.replace(/\r?\n|\r/g, '');
-
-      expect(normalizedReceived).toMatch(expectedQuery);
-    });
-
-
   });
 });
