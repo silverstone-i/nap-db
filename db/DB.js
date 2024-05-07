@@ -52,13 +52,13 @@ class DB {
         DB.pgp = pgPromise(initOptions);
         DB.db = DB.pgp(connection);
 
-        // Use pg-minify to minify queries globally
-        DB.pgp.pg.types.setTypeParser(1114, (stringValue) => stringValue); // Ensuring date types are not parsed as dates
+        // // Use pg-minify to minify queries globally
+        // DB.pgp.pg.types.setTypeParser(1114, (stringValue) => stringValue); // Ensuring date types are not parsed as dates
 
-        // Use pg-promise query formatting to apply minification
-        DB.pgp.pg.queryFormatter = {
-          minify: true,
-        };
+        // // Use pg-promise query formatting to apply minification
+        // DB.pgp.pg.queryFormatter = {
+        //   minify: true,
+        // };
       } catch (error) {
         throw error;
       }

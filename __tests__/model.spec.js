@@ -123,7 +123,10 @@ describe('Model', () => {
       await model.init();
 
       const mockReceived = dbStub.none.mock.calls[0][0];
-      const normalizedReceived = mockReceived.replace(/\r?\n|\r/g, '');
+      const normalizedReceived = mockReceived.replace(
+        /\s*([.,;:])\s*|\s{2,}|\n/g,
+        '$1'
+      );
 
       expect(normalizedReceived).toMatch(expectedQuery);
     });
@@ -587,20 +590,20 @@ describe('Model', () => {
       expect(transformFunction({ count: '10' })).toStrictEqual(10);
     });
 
-    // it('should return the number of records for a specific condition', async () => {
-    //   const dto = {
-    //     name: 'Jane Doe',
-    //     _condition: 'WHERE name = ${name}',
-    //   };
-    //   const expectedCondition = "WHERE name = 'Jane Doe'";
-    //   const expectedQuery = `SELECT COUNT(*) FROM test_table WHERE name = 'Jane Doe';`;
-    //   dbStub.one.mockResolvedValue({ count: 1 });
+    it('should return the number of records for a specific condition', async () => {
+      const dto = {
+        name: 'Jane Doe',
+        _condition: 'WHERE name = ${name}',
+      };
+      const expectedCondition = "WHERE name = 'Jane Doe'";
+      const expectedQuery = `SELECT COUNT(*) FROM test_table WHERE name = 'Jane Doe';`;
+      dbStub.one.mockResolvedValue({ count: 1 });
 
-    //   await model.count(dto);
+      await model.count(dto);
 
-    //   expect(pgpSpy.as.format.mock.results[0].value).toBe(expectedCondition);
-    //   expect(dbStub.one).toHaveBeenCalledWith(expectedQuery, expect.any(Function));
-    // });
+      expect(pgpSpy.as.format.mock.results[0].value).toBe(expectedCondition);
+      expect(dbStub.one).toHaveBeenCalledWith(expectedQuery, expect.any(Function));
+    });
   });
 
   describe('createColumnSet', () => {

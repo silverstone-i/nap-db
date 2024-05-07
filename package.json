@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "doc": "jsdoc -c jsdoc.json README.md",
-    "test": "jest --coverage --verbose ./__tests__/model.spec.js",
+    "test": "jest --coverage --verbose",
     "start": "nodemon --delay 5 ./server/app.js"
   },
   "author": "Ian Silverstone",

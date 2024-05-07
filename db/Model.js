@@ -106,7 +106,7 @@ class Model {
 
   async insert(dto) {
     try {
-        const qInsert = this.pgp.helpers.insert(dto, this.cs.insert);
+      const qInsert = this.pgp.helpers.insert(dto, this.cs.insert);
       return await this.db.none(qInsert, dto);
     } catch (error) {
       throw new DBError(error.message);
@@ -198,15 +198,22 @@ class Model {
 
   async count(dto) {
     try {
+      if (!dto) {
+        dto = {};
+      }
+
       let condition = '';
       if (dto._condition) {
         condition = this.pgp.as.format(dto._condition, dto);
       }
 
-      const count = await this.db.one(
-        `SELECT COUNT(*) FROM ${this.schema.tableName} ${condition};`,
-        (a) => +a.count
-      );
+      const qCount =
+        `SELECT COUNT(*) FROM ${this.schema.tableName} ${condition};`.replace(
+          /\s*([.,;:])\s*|\s{2,}|\n/g,
+          '$1'
+        );
+
+      const count = await this.db.one(qCount, (a) => +a.count);
 
       return count;
     } catch (error) {
