@@ -9,6 +9,7 @@ build/
 
 # IDE/Editor specific
 .vscode/
+.DS_Store/
 .idea/
 *.sublime-project
 *.sublime-workspace
@@ -25,3 +26,9 @@ yarn-error.log*
 
 # Tests
 coverage/
+
+# Documents
+docs/
+
+# Misc
+snippets.js
