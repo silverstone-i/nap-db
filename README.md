@@ -1,5 +1,5 @@
  <div style="display: flex; justify-content: left;">
-<img width="150" alt="nap-logo" src="assets/nap-logo.png">
+<img width="150" alt="nap-logo" src=https://github.com/silverstone-i/nap-db/commit/9a8b19e040fe8f0ee8036f09b9d50a31a0749a8d>
 </div>
 
 
