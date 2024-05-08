@@ -1,5 +1,5 @@
  <div style="display: flex; justify-content: left;">
-<img width="150" alt="nap-logo" src=assets/nap-logo.png />
+<img width="150" alt="nap-logo" src="https://github.com/silverstone-i/nap-db/blob/8bba6fc357c50688a080d5afcb6b2ace05a813f0/assets/nap-logo.png?raw=true" />
 </div>
 
 ## Motivation
