@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="utf-8">
+    <title>Home - Documentation</title>
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav >
+    
+    <input type="text" id="nav-search" placeholder="Search" />
+    
+    
+    <h2><a href="index.html">Home</a></h2><h2><a href="https://github.com/silverstone-i/nap-db.git" target="_blank" class="menu-item" id="repository" >Github repo</a></h2><h3>Classes</h3><ul><li><a href="ConnectionParameterError.html">ConnectionParameterError</a></li><li><a href="DB.html">DB</a><ul class='methods'><li data-type='method' style='display: none;'><a href="DB.html#.init">init</a></li></ul></li><li><a href="DBError.html">DBError</a></li><li><a href="Model.html">Model</a><ul class='methods'><li data-type='method' style='display: none;'><a href="Model.html#count">count</a></li><li data-type='method' style='display: none;'><a href="Model.html#createTableQuery">createTableQuery</a></li><li data-type='method' style='display: none;'><a href="Model.html#delete">delete</a></li><li data-type='method' style='display: none;'><a href="Model.html#drop">drop</a></li><li data-type='method' style='display: none;'><a href="Model.html#init">init</a></li><li data-type='method' style='display: none;'><a href="Model.html#insert">insert</a></li><li data-type='method' style='display: none;'><a href="Model.html#select">select</a></li><li data-type='method' style='display: none;'><a href="Model.html#truncate">truncate</a></li><li data-type='method' style='display: none;'><a href="Model.html#update">update</a></li></ul></li><li><a href="RepositoriesParameterError.html">RepositoriesParameterError</a></li></ul><h3>Global</h3><ul><li><a href="global.html#ColumnConfig">ColumnConfig</a></li><li><a href="global.html#ForeignKeyConfig">ForeignKeyConfig</a></li><li><a href="global.html#TableSchema">TableSchema</a></li><li><a href="global.html#UniqueConstraint">UniqueConstraint</a></li></ul>
+    
+</nav>
+
+<div id="main">
+    
+
+    
+
+
+
+    
+
+
+    <section class="package">
+        <h3> </h3>		
+    </section>
+
+
+
+
+
+
+
+
+
+    
+
+
+
+    <section class="readme usertext">
+        <article> <div style="display: flex; justify-content: left;">
+<img width="150" alt="nap-logo" src="https://github.com/silverstone-i/nap-db/blob/8bba6fc357c50688a080d5afcb6b2ace05a813f0/assets/nap-logo.png?raw=true" />
+</div>
+<h2>Goal</h2>
+<p>Model database tables based on a user provided data schema to map the model to the database classes</p>
+<p>The promise library pg-promise offers simple and flexible methods to efficiently interact with Postgres database. As such we chose to use the <a href="https://vitaly-t.github.io/pg-promise/">pg-promise</a> functionality into a base class that can be easily extended to provide CRUD operations and map the class to a database table.</p>
+<h2>TODO</h2>
+<p>The current library only supports parametirizedQuery operations.</p>
+<p>Provide future support for</p>
+<ul>
+<li>[ x ] parametized Statements</li>
+<li>[   ] cursor operations for negotiating through large datasets</li>
+</ul>
+<h2>Documentation</h2>
+<p><a href="https://silverstone-i.github.io/nap-db/">nap-db documentation</a></p>
+<h2>Install</h2>
+<p>npm i nap-db</p>
+<h2>Usage</h2>
+<p>This module offers 2 classes</p>
+<p>class DB - initialize database</p>
+<p>class Model - CRUD and table mapping</p>
+<h2>Usage Examples</h2>
+<p>Define a User class:</p>
+<pre class="prettyprint source lang-javascript"><code>require('dotenv').config();
+const { DB, Model } = require('nap-db');
+
+
+// Define a model to map the users table
+class Users extends Model {
+  constructor(db, pgp) {
+    const schema = {
+      tableName: 'users',
+      dbSchema: 'public',
+      timeStamps: true, // Add time stamps to table - default is true
+      columns: {
+        email: { type: 'varchar(255)', primaryKey: true },
+        password: { type: 'varchar(255)', nullable: false },
+        employee_id: { type: 'int4', nullable: false },
+        full_name: { type: 'varchar(50)', nullable: false },
+        role: { type: 'varchar(25)', nullable: false, default: 'user' },
+        active: { type: 'bool', nullable: false, default: true },
+      },
+    };
+    super(db, pgp, schema);
+
+    this.createColumnSet();
+  }
+}
+
+// setup database
+
+// repositories
+// Get DB connetion info from your .env file
+try {
+const connection = {
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT,
+  database: process.env.DB_NAME,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+};
+
+// repositories
+const repositories = { users: Users };
+
+
+const db = DB.init(connection, repositories);
+
+//Setup server code...
+
+} catch(error) {
+  console.log(&quot;Internal server error&quot;. error);
+}
+
+</code></pre>
+<h2>License</h2>
+<p>#MIT</p>
+<p>copyright © 2023 to present Ian Silverstone ian@isilverstone.com</p></article>
+    </section>
+
+
+
+
+
+
+    
+    
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.3</a> on Thu May 09 2024 14:05:59 GMT-0400 (Eastern Daylight Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+<script src="scripts/search.js" defer></script>
+
+
+<script src="scripts/collapse.js" defer></script>
+
+
+</body>
+</html>
