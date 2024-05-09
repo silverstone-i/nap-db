@@ -13,8 +13,8 @@ The promise library pg-promise offers simple and flexible methods to efficiently
 The current library only supports parametirizedQuery operations. 
 
 Provide future support for
-  - [ x ] parametized Statements
-  - [   ] cursor operations for negotiating through large datasets
+  - [ ] parametized Statements
+  - [ ] cursor operations for negotiating through large datasets
 
 ## Documentation
 
