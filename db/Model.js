@@ -3,8 +3,22 @@
 
 const { DBError } = require('./errors');
 
+/**
+ * Model class for creating, reading, updating, and deleting records in a database table.
+ * @class Model - Base class for managing CRUD and other database operations
+ * @constructor
+ */
 class Model {
   // static csCounter = 0;
+  /**
+   * Creates an instance of Model.
+   * @param {Object} db - The database connection object
+   * @param {Object} pgp - The pg-promise instance
+   * @param {TableSchema} schema - The schema object
+   * @throws {DBError} - If the db, pgp, or schema parameters are invalid
+   * @memberof Model
+   * @constructor
+   */
   constructor(db, pgp, schema) {
     try {
       if (!db || !pgp) {
@@ -38,10 +52,23 @@ class Model {
     }
   }
 
+  /**
+   * Returns the column set object for the model
+   * @readonly
+   * @memberof Model
+   * @returns {Object} - The column set object
+   */
   get columnset() {
     return this.cs;
   }
 
+  /**
+   * Creates the database table based on the schema provided
+   * @async
+   * @memberof Model
+   * @returns {Promise} - The result of the database query
+   * @throws {DBError} - If the table creation fails
+   */
   async init() {
     try {
       return await this.db.none(this.createTableQuery());
@@ -49,6 +76,13 @@ class Model {
       throw new DBError('Failed to create table.', err.message);
     }
   }
+
+  /**
+   * Creates the SQL query to create the table based on the schema provided
+   * @memberof Model
+   * @returns {string} - The SQL query to create the table
+   * @throws {DBError} - If the table creation query fails
+   */
   createTableQuery() {
     let columns = Object.entries(this.schema.columns)
       .map(([name, config]) => {
@@ -96,6 +130,13 @@ class Model {
     }${uniqueConstraints ? ',\n' + uniqueConstraints : ''}\n);`;
   }
 
+  /**
+   * Drops the database table
+   * @async
+   * @memberof Model
+   * @returns {Promise} - The result of the database query
+   * @throws {DBError} - If the table drop fails
+   */
   async drop() {
     try {
       return await this.db.none(`DROP TABLE ${this.schema.tableName};`);
@@ -104,6 +145,25 @@ class Model {
     }
   }
 
+  /**
+   * Inserts a record into the database table
+   * @async
+   * @param {Object} dto - The data transfer object
+   * @memberof Model
+   * @returns {Promise} - Status of the insert operation (200)
+   * @throws {DBError} - If the insert operation fails
+   * 
+   * @example
+   * ...
+   * // Typical DTO - all required fields must be provided or the insert will fail
+   * const dto = {
+   *  name: 'John Doe',
+   *  email: 'john@description.com
+   *  age: 30,
+   *  created_by: 'admin'
+   * };
+   * ...
+   */
   async insert(dto) {
     try {
       const qInsert = this.pgp.helpers.insert(dto, this.cs.insert);
@@ -113,6 +173,34 @@ class Model {
     }
   }
 
+  /**
+   * Selects records from the database table
+   * @async
+   * @param {Object} dto - The data transfer object
+   * @memberof Model
+   * @returns {Promise} - The records selected
+   * @throws {DBError} - If the select operation fails
+   * 
+   * @example
+   * 
+   * Select all records from the table
+   * ...
+   * const dto = {
+   *  id: 1,
+   *  _condition: 'WHERE id = ${id}'
+   * };
+   * ...
+   * 
+   * Select specific columns from the table
+   * ...
+   * const dto = {
+   *  id: 1,
+   *  name: '',
+   *  email: '',
+   *  _condition: 'WHERE id = ${id}'
+   * };
+   * ...
+   */
   async select(dto) {
     try {
       // Build the WHERE clause
@@ -140,6 +228,26 @@ class Model {
     }
   }
 
+  /**
+   * Updates records in the database table
+   * @async
+   * @param {Object} dto - The data transfer object
+   * @memberof Model
+   * @returns {Promise} - The result of the update operation
+   * @throws {DBError} - If the update operation fails
+   * 
+   * @example
+   * ...
+   * // Typical DTO - only the fields to be updated are required along with the condition  fields
+   * const dto = {
+   *  id: 1,
+   *  name: 'John Doe',
+   *  email: 'jane@description.com',
+   *  updated_by: 'admin',
+   *  _condition: 'WHERE id = ${id}'
+   * };
+   * ...
+   */
   async update(dto) {
     try {
       let condition = '';
@@ -166,6 +274,30 @@ class Model {
     }
   }
 
+  /**
+   * Deletes records from the database table
+   * @async
+   * @param {Object} dto - The data transfer object
+   * @memberof Model
+   * @returns {Promise} - The result of the delete operation
+   * @throws {DBError} - If the delete operation fails
+   * 
+   * @example
+   * 
+   * Delete all records from the table
+   * ...
+   * const dto = { );
+   * ...
+   * 
+   *  Delete specific records from the table
+   * ...
+   * // Typical DTO - only the condition fields are required
+   * const dto = {
+   *  id: 1,
+   *  _condition: 'WHERE id = ${id}'
+   * };
+   * ...
+   */
   async delete(dto) {
     try {
       let condition = '';
@@ -192,6 +324,13 @@ class Model {
     }
   }
 
+  /**
+   * Truncates the database table
+   * @async
+   * @memberof Model
+   * @returns {Promise} - The result of the truncate operation
+   * @throws {DBError} - If the truncate operation fails
+   */
   async truncate() {
     try {
       return await this.db.none(`TRUNCATE TABLE ${this.schema.tableName};`);
@@ -200,6 +339,30 @@ class Model {
     }
   }
 
+  /**
+   * Counts the number of records in the database table
+   * @async
+   * @param {Object} dto - The data transfer object
+   * @memberof Model
+   * @returns {Promise} - The count of records in the table
+   * @throws {DBError} - If the count operation fails
+   * 
+   * @example
+   * 
+   * Count records per the provided condition
+   * ...
+   * // Typical DTO - only the condition fields are required
+   * const dto = {
+   * id: 1,
+   * _condition: 'WHERE id = ${id}'
+   * };
+   * ...
+   * 
+   * Count all records in the table
+   * ...
+   * const dto = { );
+   * 
+   */
   async count(dto) {
     try {
       if (!dto) {
@@ -225,6 +388,13 @@ class Model {
     }
   }
 
+  /**
+   * Creates the column set object for the model
+   * @memberof Model
+   * @returns {Object} - The column set object
+   * @throws {DBError} - If the column set creation fails
+   * @private
+   */
   createColumnSet() {
     if (!this.cs) {
       // console.log('Creating column set', ++Model.csCounter);
