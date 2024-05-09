@@ -1,21 +1,42 @@
 {
-    "tags": {
-        "allowUnknownTags": true,
-        "dictionaries": ["jsdoc", "closure"]
+  "tags": {
+    "allowUnknownTags": true,
+    "dictionaries": ["jsdoc", "closure"]
+  },
+  "source": {
+    "include": ["db"],
+    "exclude": ["node_modules", "__test__", "coverage"],
+    "includePattern": ".+\\.js(doc)?$",
+    "excludePattern": "(^|\\/|\\\\)_"
+  },
+  "plugins": ["plugins/markdown"],
+  "templates": {
+    "default": {
+      "useLongnameInNav": true
     },
-    "source": {
-        "include": ["db"],
-        "exclude": ["node_modules", "__test__", "coverage"],
-        "includePattern": ".+\\.js(doc)?$",
-        "excludePattern": "(^|\\/|\\\\)_"
-    },
-    "plugins": ["plugins/markdown"],
-    "templates": {
-        "cleverLinks": false,
-        "monospaceLinks": false
-    },
-    "opts": {
-        "recurse": true,
-        "destination": "./docs"
+    "cleverLinks": false,
+    "monospaceLinks": false
+  },
+  "opts": {
+    "recurse": true,
+    "destination": "./docs",
+    "template": "./docdash-mod"
+  },
+  "docdash": {
+    "static": true,
+    "sort": true,
+    "search": true,
+    "collapse": true,
+    "typedefs": true,
+    "removeQuotes": "none",
+    "scripts": [],
+    "menu": {
+      "Github repo": {
+        "href": "https://github.com/silverstone-i/nap-db.git",
+        "target": "_blank",
+        "class": "menu-item",
+        "id": "repository"
+      }
     }
+  }
 }

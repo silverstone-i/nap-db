@@ -1,14 +1,13 @@
 'use strict';
 
 /**
- * Represents an error that occurs in the database.
- *
- * @class
+ * Custom errors for the db module
+ * @class DBError
  * @extends Error
- * @name DBError
- *
- * @param {string} message - The error message.
- * @param {Error} cause - The cause of the error.
+ * 
+ * @constructor
+ * @param {string} message - The error message
+ * @param {Error} [cause] - The cause of the error
  */
 class DBError extends Error {
   constructor(message, cause) {
@@ -28,12 +27,11 @@ class DBError extends Error {
     // }
   }
 }
-
+ 
 /**
- * Represents an error that occurs when a connection parameter is missing or invalid.
- *
+ * Error thrown when connection parameter is missing
  * @class ConnectionParameterError
- * @extends {DBError}
+ * @extends DBError
  */
 class ConnectionParameterError extends DBError {
   constructor() {
@@ -43,10 +41,9 @@ class ConnectionParameterError extends DBError {
 }
 
 /**
- * Represents an error that occurs when the 'repositories' parameter is missing or not a plain object.
- *
+ * Error thrown when repositories parameter is missing or invalid
  * @class RepositoriesParameterError
- * @extends {DBError}
+ * @extends DBError
  */
 class RepositoriesParameterError extends DBError {
   constructor() {

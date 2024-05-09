@@ -1,3 +1,12 @@
+/*
+ * Copyright (c) 2024-present, Ian Silverstone
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
 // ./db/DB.js
 // database class that holds the connection and pgp objects
 'use strict';
@@ -5,18 +14,13 @@ const pgPromise = require('pg-promise');
 const {
   ConnectionParameterError,
   RepositoriesParameterError,
-  DBError,
 } = require('./errors'); // Import your custom error classes
 
+// let counter = 0;
+
 /**
- * Initializes the database connection and creates repository instances.
- *
- * @param {Object} connection - The connection object for the database.
- * @param {Object} repositories - The repositories object containing repository constructors.
- * @returns {Object} - The initialized database object.
- * @throws {ConnectionParameterError} - If the connection parameter is undefined or null.
- * @throws {RepositoriesParameterError} - If the repositories parameter is not a plain object.
- * @throws {DBError} - If there is an error initializing the database.
+ * Used to initialize the pg-promise database connection and repository instances.
+ * @class DB
  */
 
 // let counter = 0;
@@ -24,6 +28,15 @@ class DB {
   static db;
   static pgp;
 
+  /**
+   * @method DB.init
+   * @param {Object} connection - The connection object
+   * @param {Object} repositories - The repositories object
+   * @returns {Object} - The initialized database object.
+   * @throws {ConnectionParameterError} - If the connection parameter is undefined or null.
+   * @throws {RepositoriesParameterError} - If the repositories parameter is not a plain object.
+   * @throws {DBError} - If there is an error initializing the database.
+   */
   static init(connection, repositories) {
     if (!DB.db) {
       try {
