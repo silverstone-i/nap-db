@@ -93,6 +93,6 @@ const db = DB.init(connection, repositories);
 ## License
 
 ## License
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 copyright © 2023 to present Ian Silverstone ian@isilverstone.com
