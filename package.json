@@ -28,7 +28,7 @@
   "files": [
     "db/",
     "package.json",
-    "README.md",
+    "README.md"
   ],
   "keywords": [
     "database",
