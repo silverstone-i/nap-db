@@ -26,6 +26,14 @@
     "nodemon": "^3.1.0"
   },
   "files": [
-    "db/"
+    "db/",
+    "package.json",
+    "README.md",
+  ],
+  "keywords": [
+    "database",
+    "orm",
+    "postgresql",
+    "pg-promise"
   ]
 }
