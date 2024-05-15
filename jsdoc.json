@@ -20,6 +20,7 @@
   "opts": {
     "recurse": true,
     "destination": "./docs",
+    "favicon": "https://raw.githubusercontent.com/silverstone-i/nap-db/master/docs/favicon.ico",
     "template": "./docdash-mod"
   },
   "docdash": {
