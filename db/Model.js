@@ -93,7 +93,7 @@ class Model {
         if (!config.nullable) {
           column += ' NOT NULL';
         }
-        if (config.default) {
+        if (config.hasOwnProperty('default')) {
           column += ` DEFAULT ${config.default}`;
         }
         return column;
@@ -152,7 +152,7 @@ class Model {
    * @memberof Model
    * @returns {Promise} - Status of the insert operation (200)
    * @throws {DBError} - If the insert operation fails
-   * 
+   *
    * @example
    * ...
    * // Typical DTO - all required fields must be provided or the insert will fail
@@ -180,9 +180,9 @@ class Model {
    * @memberof Model
    * @returns {Promise} - The records selected
    * @throws {DBError} - If the select operation fails
-   * 
+   *
    * @example
-   * 
+   *
    * Select all records from the table
    * ...
    * const dto = {
@@ -190,7 +190,7 @@ class Model {
    *  _condition: 'WHERE id = ${id}'
    * };
    * ...
-   * 
+   *
    * Select specific columns from the table
    * ...
    * const dto = {
@@ -235,7 +235,7 @@ class Model {
    * @memberof Model
    * @returns {Promise} - The result of the update operation
    * @throws {DBError} - If the update operation fails
-   * 
+   *
    * @example
    * ...
    * // Typical DTO - only the fields to be updated are required along with the condition  fields
@@ -281,14 +281,14 @@ class Model {
    * @memberof Model
    * @returns {Promise} - The result of the delete operation
    * @throws {DBError} - If the delete operation fails
-   * 
+   *
    * @example
-   * 
+   *
    * Delete all records from the table
    * ...
    * const dto = { );
    * ...
-   * 
+   *
    *  Delete specific records from the table
    * ...
    * // Typical DTO - only the condition fields are required
@@ -346,9 +346,9 @@ class Model {
    * @memberof Model
    * @returns {Promise} - The count of records in the table
    * @throws {DBError} - If the count operation fails
-   * 
+   *
    * @example
-   * 
+   *
    * Count records per the provided condition
    * ...
    * // Typical DTO - only the condition fields are required
@@ -357,11 +357,11 @@ class Model {
    * _condition: 'WHERE id = ${id}'
    * };
    * ...
-   * 
+   *
    * Count all records in the table
    * ...
    * const dto = { );
-   * 
+   *
    */
   async count(dto) {
     try {
@@ -402,7 +402,8 @@ class Model {
       const columns = Object.keys(this.schema.columns)
         .map((column) => {
           const isPrimaryKey = this.schema.columns[column].primaryKey || false;
-          const defaultValue = this.schema.columns[column].default || null;
+          const hasDefault =
+            this.schema.columns[column].hasOwnProperty('default');
           if (this.schema.columns[column].type === 'serial') return null; // ignore serial columns
 
           let columnObject = {
@@ -412,7 +413,9 @@ class Model {
           isPrimaryKey
             ? (columnObject.cnd = true)
             : (columnObject.skip = (c) => !c.exists);
-          defaultValue ? (columnObject.def = defaultValue) : null;
+          hasDefault
+            ? (columnObject.def = this.schema.columns[column].default)
+            : null;
           return columnObject;
         })
         .filter((column) => column !== null); // Filter out null entries (serial columns);

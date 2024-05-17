@@ -90,7 +90,13 @@ const db = DB.init(connection, repositories);
 
 ```
 
-## License
+Change Log
+
+v1.0.4
+
+1. Corrected missing default value when { type: boolean, default: false }.  Will now add the proper default value to the create table SQL
+2. Corrected missing default value when { type: boolean, default: false }.  Will now add the proper default when creating the columnset.
+
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
