@@ -183,7 +183,7 @@ class Model {
    *
    * @example
    *
-   * Select all records from the table
+   * Select all columns from the table
    * ...
    * const dto = {
    *  id: 1,
@@ -223,6 +223,43 @@ class Model {
             );
 
       return await this.db.any(qSelect);
+    } catch (error) {
+      throw new DBError(error.message);
+    }
+  }
+
+  /**
+   * Selects a single record from the database table
+   * @async
+   * @param {Object} dto - The data transfer object
+   * @memberof Model
+   * @returns {Promise} - The record selected or null record if the record is not found
+   * @throws {DBError} - If the select operation fails
+   * 
+   * 
+   */
+  async selectOne(dto) {
+    try {
+      // Build the WHERE clause
+      let condition = '';
+      if (dto._condition) {
+        condition = this.pgp.as.format(dto._condition, dto);
+        delete dto._condition;
+        dto = Object.fromEntries(
+          Object.entries(dto).filter(([key, value]) => value === '')
+        ); // Convert object to array and back to object to remove condition values
+      }
+
+      // Build the SELECT query
+      const qSelect =
+        Object.keys(dto).length === 0 && dto.constructor === Object
+          ? `SELECT * FROM ${this.schema.tableName} ${condition};`
+          : this.pgp.as.format(
+              `SELECT $1:name FROM ${this.schema.tableName} ${condition};`,
+              [dto]
+            );
+
+      return await this.db.oneOrNone(qSelect);
     } catch (error) {
       throw new DBError(error.message);
     }

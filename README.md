@@ -97,6 +97,7 @@ v1.0.4
 1. Corrected missing default value when { type: boolean, default: false }.  Will now add the proper default value to the create table SQL
 2. Corrected missing default value when { type: boolean, default: false }.  Will now add the proper default when creating the columnset.
 3. Replaced the doc-dash template with the clean-jsdoc-theme template so that dark/light mode is availabble out of the box.
+4. Added selectOne method to the Model class, to facilitate easier handling when only 1 record is expected
 
 
 ## License
