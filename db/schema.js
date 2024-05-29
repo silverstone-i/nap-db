@@ -6,8 +6,23 @@
  * @property {string} [dbSchema='public'] - The schema of the table (default is 'public').
  * @property {boolean} [timeStamps=true] - Whether to add timestamp columns to the table (default is true).
  * @property {Object.<string, ColumnConfig>} columns - The columns of the table. See {@link ColumnConfig}.
- * @property {Object.<string, ForeignKeyConfig>} [foreignKeys] - The foreign keys of the table. See {@link ForeignKeyConfig}.
- * @property {Object.<string, UniqueConstraint>} [uniqueConstraints] - The unique constraints of the table. See {@link UniqueConstraint}.
+ * @property {Object.<string, ConstraintConfig>} [constraints] - The constraints of the table. See {@link ConstraintConfig}.
+ * @property {Object.<string, ForeignKeyConfig>} [foreignKeys] - The foreign keys of the table. See {@link ForeignKeyConfig}. Use {@link ConstraintConfig} instead.
+ * @property {Object.<string, UniqueConstraint>} [uniqueConstraints] - The unique constraints of the table. See {@link UniqueConstraint}. Use {@link ConstraintConfig} instead.
+ * 
+ * @example
+ * const schema = {
+ *   tableName: 'vendor_addresses',
+ *   columns: {
+ *     vendor_id: { type: 'uuid' },
+ *     address_id: { type: 'uuid' },
+ *   },
+ *   constraints: {
+ *     pk_vendor_address: 'PRIMARY KEY (vendor_id, address_id)',
+ *     fk_vendor_id: 'FOREIGN KEY (vendor_id) REFERENCES vendors(id) ON DELETE CASCADE',
+ *     fk_address_id: 'FOREIGN KEY (address_id) REFERENCES addresses(id) ON DELETE CASCADE',
+ *   },
+ * };
  */
 
 /**
@@ -20,7 +35,7 @@
  */
 
 /**
- * Represents the configuration for a foreign key in a database table.
+ * Represents the configuration for a foreign key in a database table. Use {@link ConstraintConfig} instead.
  * @typedef {Object} ForeignKeyConfig
  * @property {string} referenceTable - The name of the referenced table.
  * @property {string[]} referenceColumns - The name(s) of the referenced column(s) in the referenced table.
@@ -29,12 +44,20 @@
  */
 
 /**
- * Represents the configuration for a unique constraint in a database table.
+ * Represents the configuration for a unique constraint in a database table. Use {@link ConstraintConfig} instead.
  * @typedef {Object} UniqueConstraint
  * @property {string[]} columns - The column(s) that make up the unique constraint.
  */
 
-// // Example usage:
+/**
+ * Represents the configuration for a constraint in a database table.
+ * @typedef {Object} ConstraintConfig
+ * @property {string} constraint_name - The identifier of the constraint.
+ * @property {string} constraint_sql - The SQL statement that defines the constraint.
+ */
+
+ 
+// Example usage:
 // const tableSchema = {
 //   tableName: 'example_table',
 //   timeStamps: true, // Add time stamps to table - default is true
