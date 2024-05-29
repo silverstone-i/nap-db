@@ -16,8 +16,6 @@ const {
   RepositoriesParameterError,
 } = require('./errors'); // Import your custom error classes
 
-// let counter = 0;
-
 /**
  * Used to initialize the pg-promise database connection and repository instances.
  * @class DB

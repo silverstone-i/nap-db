@@ -116,6 +116,14 @@ class Model {
           .join(',\n')
       : '';
 
+    const constraints = this.schema.constraints
+      ? Object.entries(this.schema.constraints)
+          .map(([name, config]) => {
+            return `CONSTRAINT ${name} ${config}`;
+          })
+          .join(',\n')
+      : '';
+
     const uniqueConstraints = this.schema.uniqueConstraints
       ? Object.entries(this.schema.uniqueConstraints)
           .map(([name, config]) => {
@@ -127,7 +135,9 @@ class Model {
 
     return `CREATE TABLE IF NOT EXISTS ${this.schema.tableName} (\n${columns}${
       foreignKeys ? ',\n' + foreignKeys : ''
-    }${uniqueConstraints ? ',\n' + uniqueConstraints : ''}\n);`;
+    }${constraints ? ',\n' + constraints : ''}${
+      uniqueConstraints ? ',\n' + uniqueConstraints : ''
+    }\n);`;
   }
 
   /**
@@ -235,8 +245,8 @@ class Model {
    * @memberof Model
    * @returns {Promise} - The record selected or null record if the record is not found
    * @throws {DBError} - If the select operation fails
-   * 
-   * 
+   *
+   *
    */
   async selectOne(dto) {
     try {
@@ -441,7 +451,11 @@ class Model {
           const isPrimaryKey = this.schema.columns[column].primaryKey || false;
           const hasDefault =
             this.schema.columns[column].hasOwnProperty('default');
-          if (this.schema.columns[column].type === 'serial') return null; // ignore serial columns
+          if (
+            this.schema.columns[column].type === 'serial' ||
+            (this.schema.columns[column].type === 'uuid' && isPrimaryKey && hasDefault)
+          )
+            return null; // ignore serial or uuid primary key columns
 
           let columnObject = {
             name: column,

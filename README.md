@@ -85,7 +85,7 @@ const db = DB.init(connection, repositories);
 //Setup server code...
 
 } catch(error) {
-  console.log("Internal server error". error);
+  console.log("Internal server error", error.message, error);
 }
 
 ```
@@ -98,6 +98,9 @@ v1.0.4
 2. Corrected missing default value when { type: boolean, default: false }.  Will now add the proper default when creating the columnset.
 3. Replaced the doc-dash template with the clean-jsdoc-theme template so that dark/light mode is availabble out of the box.
 4. Added selectOne method to the Model class, to facilitate easier handling when only 1 record is expected
+5. Added support for uuid type columns
+6. Added constraints type to the schema - should be used instead of ForeignKeyConfig and UniqueConstraint types
+7. Updated docs to reflect changes
 
 
 ## License

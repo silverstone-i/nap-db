@@ -64,6 +64,11 @@
 //     },
 //     // Add more foreign keys as needed
 //   },
+//   constraints: { 
+//     chk_owner_type: "owner_type IN ('employee', 'vendor')",
+//     fk_employee_id: "FOREIGN KEY (owner_id) REFERENCES employees(id) ON DELETE CASCADE",
+//     fk_vendor_id: "FOREIGN KEY (owner_id) REFERENCES vendors(id) ON DELETE CASCADE",
+//   },
 //   uniqueConstraints: {
 //     unique_name: { columns: ['name', 'age'] }, // Example unique constraint for name column
 //     // Add more unique constraints as needed
