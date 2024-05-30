@@ -101,7 +101,7 @@ v1.0.4
 5. Added support for uuid type columns
 6. Added constraints type to the schema - should be used instead of ForeignKeyConfig and UniqueConstraint types
 7. Updated docs to reflect changes
-
+8. Added insertReturning method to the Model class, to facilitate returning calculated or regular column values
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

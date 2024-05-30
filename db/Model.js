@@ -184,6 +184,34 @@ class Model {
   }
 
   /**
+   * Inserts a record into the database table and returns the specified fields
+   * @async
+   * @param {object} dto - The data transfer object
+   * @returns {Promise} - Status of the insert operation (200)
+   * @throws {DBError} - If the insert operation fails
+   *
+   * @example
+   * ...
+    const dto = {
+      name: 'John Doe',
+      email: 'john@description.com
+      age: 30,
+      created_by: 'admin'
+      returning: 'RETURNING id, name, email'
+    };
+   */
+  async insertReturning(dto) {
+    try {
+      const returning = dto.returning || '*';
+      delete dto.returning;
+      const qInsert = this.pgp.helpers.insert(dto, this.cs.insert) + ' ' + returning;
+      return await this.db.one(qInsert, dto);
+    } catch (error) {
+      throw new DBError (error.message);
+    }
+  }
+
+  /**
    * Selects records from the database table
    * @async
    * @param {Object} dto - The data transfer object
