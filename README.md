@@ -100,8 +100,9 @@ v1.0.4
 4. Added selectOne method to the Model class, to facilitate easier handling when only 1 record is expected
 5. Added support for uuid type columns
 6. Added constraints type to the schema - should be used instead of ForeignKeyConfig and UniqueConstraint types
-7. Updated docs to reflect changes
-8. Added insertReturning method to the Model class, to facilitate returning calculated or regular column values
+7. Added insertReturning method to the Model class, to facilitate returning calculated or regular column values
+8. Added support for generating calculated column values in the insert method
+9. Updated docs to reflect changes
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

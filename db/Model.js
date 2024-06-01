@@ -96,6 +96,54 @@ class Model {
         if (config.hasOwnProperty('default')) {
           column += ` DEFAULT ${config.default}`;
         }
+        if (config.generated) {
+          column += ` GENERATED ALWAYS AS ${config.generated} STORED`;
+        }
+        if (config.unique) {
+          column += ' UNIQUE';
+        }
+        if (config.references) {
+          column += ` REFERENCES ${config.references}`;
+        }
+        if (config.onDelete) {
+          column += ` ON DELETE ${config.onDelete}`;
+        }
+        if (config.onUpdate) {
+          column += ` ON UPDATE ${config.onUpdate}`;
+        }
+        if (config.check) {
+          column += ` CHECK (${config.check})`;
+        }
+        if (config.collate) {
+          column += ` COLLATE ${config.collate}`;
+        }
+        if (config.constraint) {
+          column += ` CONSTRAINT ${config.constraint}`;
+        }
+        if (config.index) {
+          column += ` INDEX ${config.index}`;
+        }
+        if (config.comment) {
+          column += ` COMMENT '${config.comment}'`;
+        }
+        if (config.srid) {
+          column += ` SRID ${config.srid}`;
+        }
+        if (config.geometryType) {
+          column += ` GEOMETRY(${config.geometryType})`;
+        }
+        if (config.geometrySrid) {
+          column += ` SRID ${config.geometrySrid}`;
+        }
+        if (config.geometryConstraints) {
+          column += ` CONSTRAINT ${config.geometryConstraints}`;
+        }
+        if (config.geometryIndex) {
+          column += ` INDEX ${config.geometryIndex}`;
+        }
+        if (config.geometryComment) {
+          column += ` COMMENT '${config.geometryComment}'`;
+        }
         return column;
       })
       .join(',\n');
