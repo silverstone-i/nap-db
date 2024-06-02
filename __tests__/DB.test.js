@@ -39,7 +39,7 @@ class Users extends Model {
 }
 
 describe('DB', () => {
-  describe('init', () => {
+  describe('createTableI', () => {
     beforeEach(() => {
       // Reset static properties of DB class before each test
       DB.db = undefined;

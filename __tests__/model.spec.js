@@ -116,11 +116,11 @@ describe('Model', () => {
     });
   });
 
-  describe('init', () => {
+  describe('createTableInDB', () => {
     it('should create a table based on schema - no foreign keys or unique constraints', async () => {
       const expectedQuery = `CREATE TABLE IF NOT EXISTS test_table (id serial PRIMARY KEY NOT NULL,name varchar(255) NOT NULL,email varchar(255) NOT NULL,age integer DEFAULT 18,created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,created_by varchar(50) NOT NULL,updated_at timestamptz NULL DEFAULT NULL,updated_by varchar(50) NULL DEFAULT NULL);`;
 
-      await model.init();
+      await model.createTableInDB();
 
       const mockReceived = dbStub.none.mock.calls[0][0];
       const normalizedReceived = mockReceived.replace(
@@ -143,7 +143,7 @@ describe('Model', () => {
 
       const expectedQuery = `CREATE TABLE IF NOT EXISTS test_table (id serial PRIMARY KEY NOT NULL,name varchar(255) NOT NULL,email varchar(255) NOT NULL,age integer DEFAULT 18,created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,created_by varchar(50) NOT NULL,updated_at timestamptz NULL DEFAULT NULL,updated_by varchar(50) NULL DEFAULT NULL,FOREIGN KEY (fk_test_table) REFERENCES test_table2(id) ON DELETE CASCADE ON UPDATE CASCADE);`;
 
-      await model.init();
+      await model.createTableInDB();
 
       const mockReceived = dbStub.none.mock.calls[0][0];
       const normalizedReceived = mockReceived.replace(/\r?\n|\r/g, '');
@@ -160,7 +160,7 @@ describe('Model', () => {
 
       const expectedQuery = `CREATE TABLE IF NOT EXISTS test_table (id serial PRIMARY KEY NOT NULL,name varchar(255) NOT NULL,email varchar(255) NOT NULL,age integer DEFAULT 18,created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,created_by varchar(50) NOT NULL,updated_at timestamptz NULL DEFAULT NULL,updated_by varchar(50) NULL DEFAULT NULL,CONSTRAINT uq_test_table UNIQUE (name,email));`;
 
-      await model.init();
+      await model.createTableInDB();
 
       const mockReceived = dbStub.none.mock.calls[0][0];
       const normalizedReceived = mockReceived.replace(/\r?\n|\r/g, '');
@@ -185,7 +185,7 @@ describe('Model', () => {
 
       const expectedQuery = `CREATE TABLE IF NOT EXISTS test_table (id serial PRIMARY KEY NOT NULL,name varchar(255) NOT NULL,email varchar(255) NOT NULL,age integer DEFAULT 18,created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,created_by varchar(50) NOT NULL,updated_at timestamptz NULL DEFAULT NULL,updated_by varchar(50) NULL DEFAULT NULL,FOREIGN KEY (fk_test_table) REFERENCES test_table2(id) ON DELETE CASCADE ON UPDATE CASCADE,CONSTRAINT uq_test_table UNIQUE (name,email));`;
 
-      await model.init();
+      await model.createTableInDB();
 
       const mockReceived = dbStub.none.mock.calls[0][0];
       const normalizedReceived = mockReceived.replace(/\r?\n|\r/g, '');
@@ -197,7 +197,7 @@ describe('Model', () => {
       dbStub.none.mockRejectedValue(new Error('Failed to create table.'));
 
       try {
-        await model.init();
+        await model.createTableInDB();
       } catch (error) {
         expect(error.message).toBe('Failed to create table.');
       }

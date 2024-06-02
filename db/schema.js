@@ -1,41 +1,74 @@
+'./db/schema.js'
 
 /**
- * Represents the schema configuration for a database table.
- * @typedef {Object} TableSchema
- * @property {string} tableName - The name of the table.
- * @property {string} [dbSchema='public'] - The schema of the table (default is 'public').
- * @property {boolean} [timeStamps=true] - Whether to add timestamp columns to the table (default is true).
- * @property {Object.<string, ColumnConfig>} columns - The columns of the table. See {@link ColumnConfig}.
- * @property {Object.<string, ConstraintConfig>} [constraints] - The constraints of the table. See {@link ConstraintConfig}.
- * @property {Object.<string, ForeignKeyConfig>} [foreignKeys] - The foreign keys of the table. See {@link ForeignKeyConfig}. Use {@link ConstraintConfig} instead.
- * @property {Object.<string, UniqueConstraint>} [uniqueConstraints] - The unique constraints of the table. See {@link UniqueConstraint}. Use {@link ConstraintConfig} instead.
- * 
- * @example
- * const schema = {
- *   tableName: 'vendor_addresses',
- *   columns: {
- *     vendor_id: { type: 'uuid' },
- *     address_id: { type: 'uuid' },
- *   },
- *   constraints: {
- *     pk_vendor_address: 'PRIMARY KEY (vendor_id, address_id)',
- *     fk_vendor_id: 'FOREIGN KEY (vendor_id) REFERENCES vendors(id) ON DELETE CASCADE',
- *     fk_address_id: 'FOREIGN KEY (address_id) REFERENCES addresses(id) ON DELETE CASCADE',
- *   },
- * };
- */
+*
+* Copyright © 2024-present, Ian Silverstone
+*
+* See the LICENSE file at the top-level directory of this distribution
+* for licensing information.
+*
+* Removal or modification of this copyright notice is prohibited.
+*/
+
+
+// Description: This file contains the deprecated schema for the database.
+
+ /**
+   * @typedef {Object} ColumnConfig
+   * @property {string} type - Data type of the column (e.g., 'VARCHAR(100)', 'INT', 'TIMESTAMP').
+   * @property {boolean} [primaryKey=false] - Indicates if the column is a primary key.
+   * @property {boolean} [nullable=true] - Indicates if the column allows NULL values.
+   * @property {*} [default] - Default value for the column.
+   * @property {string} [generated] - Expression for a generated column (e.g., 'GENERATED ALWAYS AS (expression) STORED').
+   * @property {boolean} [unique=false] - Indicates if the column has a unique constraint.
+   * @property {string} [references] - References table and column for a foreign key (e.g., 'other_table(other_column)').
+   * @property {string} [onDelete] - Action to take on delete (e.g., 'CASCADE', 'SET NULL').
+   * @property {string} [onUpdate] - Action to take on update (e.g., 'CASCADE', 'RESTRICT').
+   * @property {string} [check] - CHECK constraint condition.
+   * @property {string} [collate] - Collation to use for the column.
+   * @property {string} [comment] - Comment for the column.
+   * @property {string} [constraint] - Additional constraints for the column.
+   * @property {string} [index] - Defines an index on the column.
+   */
+
+  /**
+   * @typedef {Object} IndexConfig
+   * @property {boolean} [unique=false] - Indicates if the index is unique.
+   * @property {string} config - Configuration for the index (e.g., 'table(column)').
+   */
+
+  /**
+   * @typedef {Object.<string, string>} ConstraintsConfig
+   * An object representing additional constraints on the table. Each key is the constraint name, and the value is the constraint definition.
+   * 
+   * @example
+   * const schema = {
+   *   tableName: 'vendor_addresses',
+   *   columns: {
+   *     vendor_id: { type: 'uuid' },
+   *     address_id: { type: 'uuid' },
+   *   },
+   *   constraints: {
+   *     pk_vendor_address: 'PRIMARY KEY (vendor_id, address_id)',
+   *     fk_vendor_id: 'FOREIGN KEY (vendor_id) REFERENCES vendors(id) ON DELETE CASCADE',
+   *     fk_address_id: 'FOREIGN KEY (address_id) REFERENCES addresses(id) ON DELETE CASCADE',
+   *   },
+   * };
+   */
+
+  /**
+   * @typedef {Object} Schema
+   * @property {string} tableName - The name of the table.
+   * @property {string} [dbSchema='public'] - The schema of the table.
+   * @property {boolean} [timeStamps=true] - Indicates if the table should include timestamp columns (created_at, created_by, updated_at, updated_by).
+   * @property {Object.<string, ColumnConfig>} columns - Definitions for the columns in the table.
+   * @property {ConstraintsConfig} [constraints] - Additional constraints on the table.
+   * @property {Object.<string, IndexConfig>} [indexes] - Definitions for the indexes on the table.
+   */
 
 /**
- * Represents the configuration for a column in a database table.
- * @typedef {Object} ColumnConfig
- * @property {string} type - The data type of the column.
- * @property {boolean} [primaryKey=false] - Indicates whether the column is a primary key.
- * @property {boolean} [nullable=true] - Indicates whether the column allows null values.
- * @property {*} [default] - The default value of the column.
- */
-
-/**
- * Represents the configuration for a foreign key in a database table. Use {@link ConstraintConfig} instead.
+ * Represents the configuration for a foreign key in a database table.
+ * @deprecated Since v0.0.3.  Using&nbsp;{@link ConstraintsConfig}&nbsp;makes the Schema more flexible.
  * @typedef {Object} ForeignKeyConfig
  * @property {string} referenceTable - The name of the referenced table.
  * @property {string[]} referenceColumns - The name(s) of the referenced column(s) in the referenced table.
@@ -44,56 +77,8 @@
  */
 
 /**
- * Represents the configuration for a unique constraint in a database table. Use {@link ConstraintConfig} instead.
+ * Represents the configuration for a unique constraint in a database table.
+ * @deprecated Since v0.0.3. Using&nbsp;{@link ConstraintsConfig}&nbsp;makes the Schema more flexible.
  * @typedef {Object} UniqueConstraint
  * @property {string[]} columns - The column(s) that make up the unique constraint.
  */
-
-/**
- * Represents the configuration for a constraint in a database table.
- * @typedef {Object} ConstraintConfig
- * @property {string} constraint_name - The identifier of the constraint.
- * @property {string} constraint_sql - The SQL statement that defines the constraint.
- */
-
- 
-// Example usage:
-// const tableSchema = {
-//   tableName: 'example_table',
-//   timeStamps: true, // Add time stamps to table - default is true
-//   columns: {
-//     id: { type: 'serial', primaryKey: true },
-//     name: { type: 'varchar(255)', nullable: false },
-//     age: { type: 'int', nullable: true, default: 18 },
-//     // Add more columns as needed
-//     department_id: { type: 'int', nullable: false }, // Example foreign key column
-//     // Add more foreign key columns as needed
-//     manager_id: { type: 'int', nullable: false }, // Example additional foreign key column
-//   },
-//   foreignKeys: {
-//     department_id: {
-//       // Example foreign key definition for department_id
-//       referenceTable: 'departments', // Referenced table name
-//       referenceColumns: ['id'], // Referenced column(s) name in the departments table
-//       onDelete: 'CASCADE', // Cascade deletion
-//       onUpdate: 'CASCADE', // Cascade update
-//     },
-//     manager_id: {
-//       // Example foreign key definition for manager_id
-//       referenceTable: 'employees', // Referenced table name
-//       referenceColumns: ['id'], // Referenced column(s) name in the employees table
-//       onDelete: 'SET NULL', // Set manager_id to NULL on deletion of referenced employee
-//       onUpdate: 'CASCADE', // Cascade update
-//     },
-//     // Add more foreign keys as needed
-//   },
-//   constraints: { 
-//     chk_owner_type: "owner_type IN ('employee', 'vendor')",
-//     fk_employee_id: "FOREIGN KEY (owner_id) REFERENCES employees(id) ON DELETE CASCADE",
-//     fk_vendor_id: "FOREIGN KEY (owner_id) REFERENCES vendors(id) ON DELETE CASCADE",
-//   },
-//   uniqueConstraints: {
-//     unique_name: { columns: ['name', 'age'] }, // Example unique constraint for name column
-//     // Add more unique constraints as needed
-//   },
-// };

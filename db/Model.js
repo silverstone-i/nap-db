@@ -69,7 +69,7 @@ class Model {
    * @returns {Promise} - The result of the database query
    * @throws {DBError} - If the table creation fails
    */
-  async init() {
+  async createTableInDB() {
     try {
       return await this.db.none(this.createTableQuery());
     } catch (err) {
@@ -78,114 +78,89 @@ class Model {
   }
 
   /**
-   * Creates the SQL query to create the table based on the schema provided
-   * @memberof Model
-   * @returns {string} - The SQL query to create the table
-   * @throws {DBError} - If the table creation query fails
+   * Generates the SQL definition for a column.
+   *
+   * @param {string} name - The name of the column.
+   * @param {ColumnConfig} config - The configuration of the column.
+   * @returns {string} The SQL definition of the column.
    */
-  createTableQuery() {
-    let columns = Object.entries(this.schema.columns)
-      .map(([name, config]) => {
-        let column = `${name} ${config.type}`;
-        if (config.primaryKey) {
-          column += ' PRIMARY KEY';
-        }
-        if (!config.nullable) {
-          column += ' NOT NULL';
-        }
-        if (config.hasOwnProperty('default')) {
-          column += ` DEFAULT ${config.default}`;
-        }
-        if (config.generated) {
-          column += ` GENERATED ALWAYS AS ${config.generated} STORED`;
-        }
-        if (config.unique) {
-          column += ' UNIQUE';
-        }
-        if (config.references) {
-          column += ` REFERENCES ${config.references}`;
-        }
-        if (config.onDelete) {
-          column += ` ON DELETE ${config.onDelete}`;
-        }
-        if (config.onUpdate) {
-          column += ` ON UPDATE ${config.onUpdate}`;
-        }
-        if (config.check) {
-          column += ` CHECK (${config.check})`;
-        }
-        if (config.collate) {
-          column += ` COLLATE ${config.collate}`;
-        }
-        if (config.constraint) {
-          column += ` CONSTRAINT ${config.constraint}`;
-        }
-        if (config.index) {
-          column += ` INDEX ${config.index}`;
-        }
-        if (config.comment) {
-          column += ` COMMENT '${config.comment}'`;
-        }
-        if (config.srid) {
-          column += ` SRID ${config.srid}`;
-        }
-        if (config.geometryType) {
-          column += ` GEOMETRY(${config.geometryType})`;
-        }
-        if (config.geometrySrid) {
-          column += ` SRID ${config.geometrySrid}`;
-        }
-        if (config.geometryConstraints) {
-          column += ` CONSTRAINT ${config.geometryConstraints}`;
-        }
-        if (config.geometryIndex) {
-          column += ` INDEX ${config.geometryIndex}`;
-        }
-        if (config.geometryComment) {
-          column += ` COMMENT '${config.geometryComment}'`;
-        }
-        return column;
+  #generateColumnDefinition(name, config) {
+    const parts = [`${name} ${config.type}`];
+
+    if (config.primaryKey) parts.push('PRIMARY KEY');
+    if (!config.nullable) parts.push('NOT NULL');
+    if (config.default !== undefined) parts.push(`DEFAULT ${config.default}`);
+    if (config.generated)
+      parts.push(`GENERATED ALWAYS AS (${config.generated}) STORED`);
+    if (config.unique) parts.push('UNIQUE');
+    if (config.references) parts.push(`REFERENCES ${config.references}`);
+    if (config.onDelete) parts.push(`ON DELETE ${config.onDelete}`);
+    if (config.onUpdate) parts.push(`ON UPDATE ${config.onUpdate}`);
+    if (config.check) parts.push(`CHECK (${config.check})`);
+    if (config.collate) parts.push(`COLLATE ${config.collate}`);
+    if (config.comment) parts.push(`COMMENT '${config.comment}'`);
+    if (config.constraint) parts.push(`CONSTRAINT ${config.constraint}`);
+    if (config.index) parts.push(`INDEX ${config.index}`);
+
+    return parts.join(' ');
+  }
+
+  /**
+   * Generates the SQL definitions for constraints.
+   *
+   * @param {ConstraintsConfig} constraints - The constraints configuration.
+   * @returns {string} The SQL definitions for the constraints.
+   */
+  #generateConstraints(constraints) {
+    return Object.entries(constraints)
+      .map(([name, config]) => `CONSTRAINT ${name} ${config}`)
+      .join(',\n');
+  }
+
+  /**
+   * Generates the SQL definitions for indexes.
+   *
+   * @param {string} tableName - The name of the table.
+   * @param {Object.<string, IndexConfig>} indexes - The indexes configuration.
+   * @returns {string} The SQL definitions for the indexes.
+   */
+  #generateIndexes(tableName, indexes) {
+    return Object.entries(indexes)
+      .map(([indexName, { unique, config }]) => {
+        const uniqueClause = unique ? 'UNIQUE ' : '';
+        return `CREATE ${uniqueClause}INDEX ${indexName} ON ${tableName} (${config});`;
       })
+      .join('\n');
+  }
+
+  /**
+   * Generates a SQL CREATE TABLE query based on the provided schema.
+   *
+   * @param {Schema} schema - The schema defining the table structure.
+   * @returns {string} The generated SQL CREATE TABLE query.
+   */
+  createTableQuery(schema) {
+    const columns = Object.entries(schema.columns)
+      .map(([name, config]) => this.#generateColumnDefinition(name, config))
       .join(',\n');
 
-    if (this.schema.timeStamps) {
-      columns += `,\ncreated_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,\ncreated_by varchar(50) NOT NULL,\nupdated_at timestamptz NULL DEFAULT NULL,\nupdated_by varchar(50) NULL DEFAULT NULL`;
-    }
-
-    const foreignKeys = this.schema.foreignKeys
-      ? Object.entries(this.schema.foreignKeys)
-          .map(([name, config]) => {
-            return `FOREIGN KEY (${name}) REFERENCES ${
-              config.referenceTable
-            }(${config.referenceColumns.join(',')}) ON DELETE ${
-              config.onDelete
-            } ON UPDATE ${config.onUpdate}`;
-          })
-          .join(',\n')
+    const timeStampColumns = schema.timeStamps
+      ? `, created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP, 
+       created_by VARCHAR(50) NOT NULL, 
+       updated_at TIMESTAMPTZ DEFAULT NULL, 
+       updated_by VARCHAR(50) DEFAULT NULL`
       : '';
 
-    const constraints = this.schema.constraints
-      ? Object.entries(this.schema.constraints)
-          .map(([name, config]) => {
-            return `CONSTRAINT ${name} ${config}`;
-          })
-          .join(',\n')
+    const constraints = schema.constraints
+      ? this.#generateConstraints(schema.constraints)
+      : '';
+    const indexes = schema.indexes
+      ? this.#generateIndexes(schema.tableName, schema.indexes)
       : '';
 
-    const uniqueConstraints = this.schema.uniqueConstraints
-      ? Object.entries(this.schema.uniqueConstraints)
-          .map(([name, config]) => {
-            const columns = config.columns.join(',');
-            return `CONSTRAINT ${name} UNIQUE (${columns})`;
-          })
-          .join(',\n')
-      : '';
-
-    return `CREATE TABLE IF NOT EXISTS ${this.schema.tableName} (\n${columns}${
-      foreignKeys ? ',\n' + foreignKeys : ''
-    }${constraints ? ',\n' + constraints : ''}${
-      uniqueConstraints ? ',\n' + uniqueConstraints : ''
-    }\n);`;
+    return `CREATE TABLE IF NOT EXISTS ${schema.tableName} (
+    ${columns}${timeStampColumns}${constraints ? ',\n' + constraints : ''}
+  );\n${indexes}`;
   }
 
   /**
@@ -252,10 +227,11 @@ class Model {
     try {
       const returning = dto.returning || '*';
       delete dto.returning;
-      const qInsert = this.pgp.helpers.insert(dto, this.cs.insert) + ' ' + returning;
+      const qInsert =
+        this.pgp.helpers.insert(dto, this.cs.insert) + ' ' + returning;
       return await this.db.one(qInsert, dto);
     } catch (error) {
-      throw new DBError (error.message);
+      throw new DBError(error.message);
     }
   }
 
@@ -529,7 +505,9 @@ class Model {
             this.schema.columns[column].hasOwnProperty('default');
           if (
             this.schema.columns[column].type === 'serial' ||
-            (this.schema.columns[column].type === 'uuid' && isPrimaryKey && hasDefault)
+            (this.schema.columns[column].type === 'uuid' &&
+              isPrimaryKey &&
+              hasDefault)
           )
             return null; // ignore serial or uuid primary key columns
 
