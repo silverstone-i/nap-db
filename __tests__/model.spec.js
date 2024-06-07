@@ -118,7 +118,7 @@ describe('Model', () => {
 
   describe('createTableInDB', () => {
     it('should create a table based on schema - no foreign keys or unique constraints', async () => {
-      const expectedQuery = `CREATE TABLE IF NOT EXISTS test_table (id serial PRIMARY KEY NOT NULL,name varchar(255) NOT NULL,email varchar(255) NOT NULL,age integer DEFAULT 18,created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,created_by varchar(50) NOT NULL,updated_at timestamptz NULL DEFAULT NULL,updated_by varchar(50) NULL DEFAULT NULL);`;
+      const expectedQuery = `CREATE TABLE IF NOT EXISTS test_table (id serial PRIMARY KEY NOT NULL,name varchar(255) NOT NULL,email varchar(255) NOT NULL,age integer DEFAULT 18,created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,created_by VARCHAR(50) NOT NULL,updated_at TIMESTAMPTZ DEFAULT NULL,updated_by VARCHAR(50) DEFAULT NULL);`;
 
       await model.createTableInDB();
 
@@ -132,63 +132,58 @@ describe('Model', () => {
     });
 
     it('should create a table based on schema - with foreign keys and no unique constraints', async () => {
-      model.schema.foreignKeys = {
-        fk_test_table: {
-          referenceTable: 'test_table2',
-          referenceColumns: ['id'],
-          onDelete: 'CASCADE',
-          onUpdate: 'CASCADE',
-        },
+      model.schema.constraints = {
+        fk_test_table:
+          'FOREIGN KEY (email) REFERENCES test_table2 (email) ON DELETE CASCADE ON UPDATE CASCADE',
       };
 
-      const expectedQuery = `CREATE TABLE IF NOT EXISTS test_table (id serial PRIMARY KEY NOT NULL,name varchar(255) NOT NULL,email varchar(255) NOT NULL,age integer DEFAULT 18,created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,created_by varchar(50) NOT NULL,updated_at timestamptz NULL DEFAULT NULL,updated_by varchar(50) NULL DEFAULT NULL,FOREIGN KEY (fk_test_table) REFERENCES test_table2(id) ON DELETE CASCADE ON UPDATE CASCADE);`;
+      const expectedQuery = `CREATE TABLE IF NOT EXISTS test_table (id serial PRIMARY KEY NOT NULL,name varchar(255) NOT NULL,email varchar(255) NOT NULL,age integer DEFAULT 18,created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,created_by VARCHAR(50) NOT NULL,updated_at TIMESTAMPTZ DEFAULT NULL,updated_by VARCHAR(50) DEFAULT NULL,CONSTRAINT fk_test_table FOREIGN KEY (email) REFERENCES test_table2 (email) ON DELETE CASCADE ON UPDATE CASCADE);`;
 
       await model.createTableInDB();
 
       const mockReceived = dbStub.none.mock.calls[0][0];
-      const normalizedReceived = mockReceived.replace(/\r?\n|\r/g, '');
+      const normalizedReceived = mockReceived.replace(
+        /\s*([.,;:])\s*|\s{2,}|\n/g,
+        '$1'
+      );
 
       expect(normalizedReceived).toMatch(expectedQuery);
     });
 
     it('should create a table based on schema - with unique constraints and no foreign keys', async () => {
-      model.schema.uniqueConstraints = {
-        uq_test_table: {
-          columns: ['name', 'email'],
-        },
+      model.schema.constraints = {
+        uq_name_email: 'UNIQUE (name, email)',
       };
 
-      const expectedQuery = `CREATE TABLE IF NOT EXISTS test_table (id serial PRIMARY KEY NOT NULL,name varchar(255) NOT NULL,email varchar(255) NOT NULL,age integer DEFAULT 18,created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,created_by varchar(50) NOT NULL,updated_at timestamptz NULL DEFAULT NULL,updated_by varchar(50) NULL DEFAULT NULL,CONSTRAINT uq_test_table UNIQUE (name,email));`;
+      const expectedQuery = `CREATE TABLE IF NOT EXISTS test_table (id serial PRIMARY KEY NOT NULL,name varchar(255) NOT NULL,email varchar(255) NOT NULL,age integer DEFAULT 18,created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,created_by VARCHAR(50) NOT NULL,updated_at TIMESTAMPTZ DEFAULT NULL,updated_by VARCHAR(50) DEFAULT NULL,CONSTRAINT uq_name_email UNIQUE (name,email));`;
 
       await model.createTableInDB();
 
       const mockReceived = dbStub.none.mock.calls[0][0];
-      const normalizedReceived = mockReceived.replace(/\r?\n|\r/g, '');
+      const normalizedReceived = mockReceived.replace(
+        /\s*([.,;:])\s*|\s{2,}|\n/g,
+        '$1'
+      );
 
       expect(normalizedReceived).toMatch(expectedQuery);
     });
 
     it('should create a table based on schema - with foreign keys and unique constraints', async () => {
-      model.schema.foreignKeys = {
-        fk_test_table: {
-          referenceTable: 'test_table2',
-          referenceColumns: ['id'],
-          onDelete: 'CASCADE',
-          onUpdate: 'CASCADE',
-        },
-      };
-      model.schema.uniqueConstraints = {
-        uq_test_table: {
-          columns: ['name', 'email'],
-        },
+      model.schema.constraints = {
+        fk_test_table:
+          'FOREIGN KEY (email) REFERENCES test_table2 (email) ON DELETE CASCADE ON UPDATE CASCADE',
+        uq_name_email: 'UNIQUE (name, email)',
       };
 
-      const expectedQuery = `CREATE TABLE IF NOT EXISTS test_table (id serial PRIMARY KEY NOT NULL,name varchar(255) NOT NULL,email varchar(255) NOT NULL,age integer DEFAULT 18,created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,created_by varchar(50) NOT NULL,updated_at timestamptz NULL DEFAULT NULL,updated_by varchar(50) NULL DEFAULT NULL,FOREIGN KEY (fk_test_table) REFERENCES test_table2(id) ON DELETE CASCADE ON UPDATE CASCADE,CONSTRAINT uq_test_table UNIQUE (name,email));`;
+      const expectedQuery = `CREATE TABLE IF NOT EXISTS test_table (id serial PRIMARY KEY NOT NULL,name varchar(255) NOT NULL,email varchar(255) NOT NULL,age integer DEFAULT 18,created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,created_by VARCHAR(50) NOT NULL,updated_at TIMESTAMPTZ DEFAULT NULL,updated_by VARCHAR(50) DEFAULT NULL,CONSTRAINT fk_test_table FOREIGN KEY (email) REFERENCES test_table2 (email) ON DELETE CASCADE ON UPDATE CASCADE,CONSTRAINT uq_name_email UNIQUE (name,email));`;
 
       await model.createTableInDB();
 
       const mockReceived = dbStub.none.mock.calls[0][0];
-      const normalizedReceived = mockReceived.replace(/\r?\n|\r/g, '');
+      const normalizedReceived = mockReceived.replace(
+        /\s*([.,;:])\s*|\s{2,}|\n/g,
+        '$1'
+      );
 
       expect(normalizedReceived).toMatch(expectedQuery);
     });
@@ -204,9 +199,11 @@ describe('Model', () => {
     });
 
     it('calling Model.createTableQuery should generate the create table SQL', () => {
-      const expectedQuery = `CREATE TABLE IF NOT EXISTS test_table (id serial PRIMARY KEY NOT NULL,name varchar(255) NOT NULL,email varchar(255) NOT NULL,age integer DEFAULT 18,created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,created_by varchar(50) NOT NULL,updated_at timestamptz NULL DEFAULT NULL,updated_by varchar(50) NULL DEFAULT NULL);`;
+      const expectedQuery = `CREATE TABLE IF NOT EXISTS test_table (id serial PRIMARY KEY NOT NULL,name varchar(255) NOT NULL,email varchar(255) NOT NULL,age integer DEFAULT 18,created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,created_by VARCHAR(50) NOT NULL,updated_at TIMESTAMPTZ DEFAULT NULL,updated_by VARCHAR(50) DEFAULT NULL);`;
 
-      const actualQuery = model.createTableQuery().replace(/\r?\n|\r/g, '');
+      const actualQuery = model
+        .createTableQuery()
+        .replace(/\s*([.,;:])\s*|\s{2,}|\n/g, '$1');
 
       expect(actualQuery).toBe(expectedQuery);
     });
@@ -215,7 +212,9 @@ describe('Model', () => {
       model.schema.timeStamps = false;
       const expectedQuery = `CREATE TABLE IF NOT EXISTS test_table (id serial PRIMARY KEY NOT NULL,name varchar(255) NOT NULL,email varchar(255) NOT NULL,age integer DEFAULT 18);`;
 
-      const actualQuery = model.createTableQuery().replace(/\r?\n|\r/g, '');
+      const actualQuery = model
+        .createTableQuery()
+        .replace(/\s*([.,;:])\s*|\s{2,}|\n/g, '$1');
 
       expect(actualQuery).toBe(expectedQuery);
     });

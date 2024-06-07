@@ -139,7 +139,7 @@ class Model {
    * @param {Schema} schema - The schema defining the table structure.
    * @returns {string} The generated SQL CREATE TABLE query.
    */
-  createTableQuery(schema) {
+  createTableQuery(schema = this.schema) {
     const columns = Object.entries(schema.columns)
       .map(([name, config]) => this.#generateColumnDefinition(name, config))
       .join(',\n');
@@ -234,6 +234,46 @@ class Model {
       throw new DBError(error.message);
     }
   }
+
+  /**
+   * Fetches all records from the database table in batches of a set size
+   * @async
+   * @param {Object} dto - The data transfer object to specfiy rwuired fields
+   * @param {uuid} cursor - The starting record of the batch - starting value is null
+   * @param {integer} limit - The number of records to fetch per batch - default is 25
+   * @memberof Model
+   * @returns {Promise} - The records fetched
+   * @throws {DBError} - If the fetch operation fails
+   * @abstract
+   * @example
+   * ...
+   * // Typical DTO - only the condition fields are required
+   * const dto = {
+   *    ...fields to fetch = '', null or undefined
+   *};
+   */
+  async fetch(dto, cursor, limit = 25) {
+    try {
+      const keys = dto ? Object.keys(dto) : [];
+      const keyString = keys.length > 0 ? keys.join(', ') : '*';
+      const params = [parseInt(limit)];
+      let query = `SELECT ${keyString} FROM ${this.schema.tableName} ORDER BY id ASC LIMIT $1`;
+
+      if (cursor) {
+        query = `SELECT ${keyString} FROM ${this.schema.tableName} WHERE id > $1 ORDER BY id ASC LIMIT $2`;
+        params.unshift(cursor);
+      }
+
+      const data = await db.any(query, params);
+      return data;
+    } catch (error) {
+      throw new DBError(
+        `Failed to fetch data from ${this.schema.tableName}: ${error.message}`
+      );
+    }
+  }
+
+  async fetchFiltered(dto) {}
 
   /**
    * Selects records from the database table
