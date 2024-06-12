@@ -38,7 +38,7 @@ class SelectQueryBuilder {
     'STDDEV',
     'MEDIAN',
     'AVG',
-    'STRINGAGG',
+    'STRING_AGG',
     'FIRSTVALUE',
     'LASTVALUE',
   ]);
@@ -70,6 +70,41 @@ class SelectQueryBuilder {
     this.aggregates = []; // Array to store aggregate functions
     this.groupBy = ''; // The GROUP BY clause
     this.values = []; // Array to store parameterized values for prepared statements
+  }
+
+  /**
+   * Sets the query builder properties based on the provided options object.
+   * @param {Object} options - The options object containing query builder properties.
+   * @returns {SelectQueryBuilder} - Returns the instance of SelectQueryBuilder for method chaining.
+   */
+  setOptions(options) {
+    try {
+      if (!options || typeof options !== 'object') {
+        throw new Error('Invalid options object.');
+      }
+      if (options.table) this.setTable(options.table);
+      if (options.fields) this.setFields(options.fields);
+      if (options.conditions && options.conditions.length > 0)
+        options.conditions.forEach((condition) => {
+          this.addCondition(condition);
+        });
+      if (options.orderBy) this.setOrderBy(options.orderBy);
+      if (options.limit) this.setLimit(options.limit);
+      if (options.offset) this.setOffset(options.offset);
+      if (options.joins && options.joins.length > 0)
+        options.joins.forEach((join) => {
+          this.addJoin(join.type, join.table, join.condition);
+        });
+      if (options.aggregates && options.aggregates.length > 0)
+        options.aggregates.forEach((aggregate) => {
+          this.addAggregate(aggregate.func, aggregate.field, aggregate.alias);
+        });
+      if (options.groupBy) this.setGroupBy(options.groupBy);
+      return this;
+    } catch (error) {
+      // console.error(error);
+      throw new DBError(error.message);
+    }
   }
 
   /**

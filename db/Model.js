@@ -11,6 +11,7 @@
  */
 
 const { DBError } = require('./errors');
+const SelectQueryBuilder = require('./SelectQueryBuilder');
 
 class Model {
   constructor(db, pgp, schema) {
@@ -39,6 +40,7 @@ class Model {
       if (!schema.timeStamps) schema.timeStamps = true;
       this.schema = JSON.parse(JSON.stringify(schema));
       this.cs = this.#createColumnSet();
+      this.qb = new SelectQueryBuilder();
     } catch (error) {
       throw new DBError(error.message);
     }
@@ -189,24 +191,94 @@ class Model {
       delete dto.returning;
       const qInsert =
         this.pgp.helpers.insert(dto, this.cs.insert) + ' ' + returning;
-        console.log('qInsert', qInsert);
-        console.log('dto', dto);
-        
+      console.log('qInsert', qInsert);
+      console.log('dto', dto);
+
       const result = await this.db.one(qInsert, dto);
       return result;
     } catch (error) {
-        console.log('Error:', error);
-        
+      console.log('Error:', error);
+
+      throw new DBError(error.message);
+    }
+  }
+  //    Fetches all records from the database table
+  async findAll(options) {
+    try {
+      this.qb.reset();
+      options.table = this.schema.tableName;
+      this.qb.setOptions(options);
+      const { query, values } = this.qb.build();
+      return await this.db.manyOrNone(query, values);
+    } catch (error) {
       throw new DBError(error.message);
     }
   }
 
-  findAll() {} //    Fetches all records from the database table
-  findAndCountAll() {} //    Fetches all records from the database table and returns the total count
-  findByPK() {} //    Finds a record by its primary key
-  findOne() {} //   Finds a single record based on provided conditions
-  findByPK() {} //    Finds a record by its primary key
-  findOne() {} //   Finds a single record based on provided conditions
+  #addTotalCountToQuery(query) {
+    const totalCountString = 'COUNT(*) OVER() AS total_count';
+    if (query.toUpperCase().includes(totalCountString.toUpperCase())) {
+      // If 'COUNT(*) OVER() AS total_count' already exists, return the original query
+      return query;
+    }
+
+    const fromIndex = query.toUpperCase().indexOf('FROM');
+    if (fromIndex !== -1) {
+      // Insert the total count string before the FROM clause
+      const beforeFrom = query.substring(0, fromIndex);
+      const afterFrom = query.substring(fromIndex);
+      return `${beforeFrom.trim()}, ${totalCountString} ${afterFrom}`;
+    }
+
+    // If 'FROM' not found, return the original query
+    return query;
+  }
+
+  /**
+   *
+   * @param {*} options
+   * @returns
+   */
+  async findAndCountAll(options) {
+    try {
+      this.qb.reset();
+      options.table = this.schema.tableName;
+      this.qb.setOptions(options);
+      const { query, values } = this.qb.build();
+      const totalCountQuery = this.#addTotalCountToQuery(query);
+      return await this.db.manyOrNone(totalCountQuery, values);
+    } catch (error) {
+      throw new DBError(error.message);
+    }
+  }
+
+  //    Finds a record by its primary key
+  findByPK(pkValue) {
+    try {
+      return this.db.oneOrNone(
+        `SELECT * FROM ${this.schema.tableName} WHERE ${this.schema.primaryKey} = $1;`,
+        pkValue
+      );
+    } catch (error) {
+      // console.log('Error:', error);
+      throw new DBError(error.message);
+    }
+  }
+
+  //   Finds a single record based on provided conditions
+
+  async finddOne(options) {
+    try {
+      this.qb.reset();
+      options.table = this.schema.tableName;
+      this.qb.setOptions(options);
+      const { query, values } = this.qb.build();
+      return await this.db.oneOrNone(query, values);
+    } catch (error) {
+      throw new DBError(error.message);
+    }
+  }
+
   async update(dto) {
     try {
       let condition = '';
@@ -256,7 +328,7 @@ class Model {
     } catch (error) {
       throw new DBError(error.message);
     }
-  } 
+  }
 
   // **************************Other Query Operations*******************************************
   async drop() {
@@ -273,47 +345,76 @@ class Model {
     } catch (error) {
       throw new DBError(error.message);
     }
-  } 
+  }
   async runQuery() {} //    Runs a custom query on the database
 
   // *******************************Aggregates********************************************
 
-  async count(dto) {
-        try {
-          if (!dto) {
-            dto = {};
-          }
+  async aggregate(options) {
+    try {
+      this.qb.reset();
+      options.table = this.schema.tableName;
+      this.qb.setOptions(options);
+      const { query, values } = this.qb.build();
+      return await this.db.oneOrNone(query, values);
+    } catch (error) {
+      throw new DBError(error.message);
+    }
+  }
 
-          let condition = '';
-          if (dto._condition) {
-            condition = this.pgp.as.format(dto._condition, dto);
-          }
+  async count(options) {
+    return await this.aggregate(options);
+  }
 
-          const qCount =
-            `SELECT COUNT(*) FROM ${this.schema.tableName} ${condition};`.replace(
-              /\s*([.,;:])\s*|\s{2,}|\n/g,
-              '$1'
-            );
+  //    Finds the maximum value for a given field
+  async max(options) {
+    return await this.aggregate(options);
+  }
 
-          const count = await this.db.one(qCount, (a) => +a.count);
+  //    Finds the minimum value for a given field
+  async min(options) {
+    return await this.aggregate(dto);
+  }
 
-          return count;
-        } catch (error) {
-          throw new DBError(error.message);
-        }
+  //    Calculates the sum of a given field
+  async sum(options) {
+    return await this.aggregate(options);
+  }
 
-  } 
+  //   Finds the variance for a given field
+  async variance(options) {
+    return await this.aggregate(options);
+  }
 
-  async max(dto) {} //    Finds the maximum value for a given field
-  async min(dto) {} //    Finds the minimum value for a given field
-  async sum(dto) {} //    Calculates the sum of a given field
-  async variance(dto) {} //   Finds the variance for a given field
-  async stddev(dto) {} //    Finds the standard deviation for a given field
-  async median(dto) {} //    Finds the median for a given field
-  async average(dto) {} //   Calculates the average of a given field
-  async stringAgg(dto, delimiter) {} //    Concatenates strings from multiple records into one string with specified delimiter
-  async firstValue(dto) {} // Finds the first value for a given field
-  async lastValue(dto) {} //    Finds the last value for a given field
+  //    Finds the standard deviation for a given field
+  async stddev(options) {
+    return await this.aggregate(options);
+  }
+
+  //    Finds the median for a given field
+  async median(options) {
+    return await this.aggregate(options);
+  }
+
+  //   Calculates the average of a given field
+  async average(options) {
+    return await this.aggregate(options);
+  }
+
+  //    Concatenates strings from multiple records into one string with specified delimiter
+  async stringAgg(options) {
+    return await this.aggregate(options);
+  }
+
+  // Finds the first value for a given field
+  async firstValue(options) {
+    return await this.aggregate(options);
+  }
+
+  //    Finds the last value for a given field
+  async lastValue(options) {
+    return await this.aggregate(options);
+  }
 }
 
 module.exports = Model;

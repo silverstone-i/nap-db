@@ -62,6 +62,125 @@ describe('SelectQueryBuilder', () => {
     });
   });
 
+  describe('setOptions Method', () => {
+    it('should set the options for the query', () => {
+      qb.setOptions({
+        table: 'users',
+        fields: ['id', 'name'],
+      });
+      expect(qb.table).toBe('users');
+      expect(qb.fields).toEqual('id, name');
+    });
+
+    it('should return the SelectQueryBuilder instance for method chaining', () => {
+      const result = qb.setOptions({
+        table: 'users',
+        fields: ['id', 'name'],
+      });
+      expect(result).toBe(qb);
+    }
+    );
+    
+    it('should not set any properties if an empty options object is provided', () => {
+      qb.setOptions({});
+      expect(qb).toEqual({
+        table: '',
+        fields: '*',
+        conditions: [],
+        orderBy: '',
+        limit: undefined,
+        offset: undefined,
+        joins: [],
+        aggregates: [],
+        groupBy: '',
+        values: [],
+      });
+    });
+
+    it('should throw an error if no options object is provided', () => {
+      expect(() => qb.setOptions()).toThrow('Invalid options object.');
+    });
+
+    it('should throw an error if the options object is not an object', () => {
+      expect(() => qb.setOptions('users')).toThrow('Invalid options object.');
+    });
+
+    it('should not set any properties if the options are invalid', () => {
+      qb.setOptions({ cat: 'users' });
+      expect(qb).toEqual({
+        table: '',
+        fields: '*',
+        conditions: [],
+        orderBy: '',
+        limit: undefined,
+        offset: undefined,
+        joins: [],
+        aggregates: [],
+        groupBy: '',
+        values: [],
+      });
+    });
+
+    it('should not throw an error if the options are valid', () => {
+      expect(() =>
+        qb.setOptions({ table: 'users', fields: ['id', 'name'] })
+      ).not.toThrow();
+    });
+
+    it('should copy the conditions object successfully', () => {
+      const conditions = [
+        { field: 'id', operator: '=', value: 1 },
+        { field: 'name', operator: 'LIKE', value: 'John' },
+      ];
+      qb.setOptions({ table: 'users', conditions });
+      expect(qb.conditions).toEqual(conditions);
+    });
+
+    it('should copy a nested conditions object successfully', () => {
+      const conditions = [
+        { field: 'id', operator: '=', value: 1 },
+        {
+          conjunction: 'OR',
+          conditions: [
+            { field: 'name', operator: 'LIKE', value: 'John' },
+            { field: 'name', operator: 'LIKE', value: 'Doe' },
+          ],
+        },
+      ];
+      qb.setOptions({ table: 'users', conditions });
+      expect(qb.conditions).toEqual(conditions);
+    });
+
+    it('should copy the joins object successfully', () => {
+      const joins = [
+        { type: 'INNER', table: 'posts', condition: 'users.id = posts.user_id' },
+        { type: 'LEFT OUTER', table: 'comments', condition: 'users.id = comments.user_id' }
+      ];
+      qb.setOptions({ table: 'users', joins });
+      expect(qb.joins).toEqual(joins);
+    });
+
+    it('should copy the aggregates object successfully', () => {
+      const aggregates = [
+        { func: 'COUNT', field: 'id', alias: 'total' },
+        { func: 'AVG', field: 'age', alias: 'average' },
+      ];
+      qb.setOptions({ table: 'users', aggregates });
+      expect(qb.aggregates).toEqual(aggregates);
+    });
+
+    it('should copy the orderBy, limit, offet and groupBy properties successfully', () => {
+      const orderBy = 'name ASC';
+      const limit = 10;
+      const offset = 5;
+      qb.setOptions({ table: 'users', orderBy, limit, offset, groupBy: 'name' });
+      expect(qb.orderBy).toBe(orderBy);
+      expect(qb.limit).toBe(limit);
+      expect(qb.offset).toBe(offset);
+      expect(qb.groupBy).toEqual('name');
+    });
+  });
+
   describe('setTable Method', () => {
     it('should set the table for the query', () => {
       qb.setTable('users');
@@ -642,6 +761,15 @@ describe('SelectQueryBuilder', () => {
       const query = qb.buildQuery();
 
       expect(query.query).toBe('SELECT COUNT(id) AS total FROM users');
+      expect(query.values).toEqual([]);
+    });
+
+    it('should build an aggregated query using STRING_AGG clause', () => {
+      qb.setTable('users').addAggregate('STRING_AGG', 'name', 'names');
+
+      const query = qb.buildQuery();
+
+      expect(query.query).toBe('SELECT STRING_AGG(name) AS names FROM users');
       expect(query.values).toEqual([]);
     });
   });
