@@ -39,7 +39,7 @@ class Model {
       if (!schema.dbSchema) schema.dbSchema = 'public';
       if (!schema.timeStamps) schema.timeStamps = true;
       this.schema = JSON.parse(JSON.stringify(schema));
-      this.cs = this.#createColumnSet();
+      this.cs = this.createColumnSet();
       this.qb = new SelectQueryBuilder();
     } catch (error) {
       throw new DBError(error.message);
@@ -53,7 +53,7 @@ class Model {
   //  Returns the column set object for the model
 
   // ***********************************Private Helper Functions***********************************
-  #createColumnSet() {
+  createColumnSet() {
     if (!this.cs) {
       // console.log('Creating column set', ++Model.csCounter);
 
@@ -304,7 +304,7 @@ class Model {
       throw new DBError(error.message);
     }
   }
-  async delete(pk) {
+  async delete(dto) {
     try {
       let condition = '';
       if (dto._condition) {
@@ -355,9 +355,11 @@ class Model {
       this.qb.reset();
       options.table = this.schema.tableName;
       this.qb.setOptions(options);
-      const { query, values } = this.qb.build();
+      const { query, values } = this.qb.buildQuery();
+      
       return await this.db.oneOrNone(query, values);
     } catch (error) {
+      console.log('Error:', error);
       throw new DBError(error.message);
     }
   }
