@@ -1,6 +1,5 @@
 './db/QueryOptions.js';
 
-
 /**
  *
  * Copyright © 2024-present, Ian Silverstone
@@ -15,7 +14,7 @@ const { DBError } = require('./errors');
 
 class QueryOptions {
   constructor() {
-     this.reset();
+    this.reset();
   }
 
   get Options() {
@@ -34,36 +33,32 @@ class QueryOptions {
 
   set Options(options) {
     try {
-      if (!options || typeof options !== 'object') {
+      if (
+        !options ||
+        typeof options !== 'object' ||
+        Array.isArray(options) ||
+        Object.keys(options).length === 0
+      ) {
         throw new Error('Invalid options object.');
       }
       if (options.table) this.setTable(options.table);
       if (options.fields) this.setFields(options.fields);
-      console.log('SET CONDITIONS');
-      
       if (options.conditions && options.conditions.length > 0)
         options.conditions.forEach((condition) => {
           this.addCondition(condition);
         });
-        console.log('CONDITIONS', this.conditions);
-        
       if (options.orderBy) this.setOrderBy(options.orderBy);
       if (options.limit) this.setLimit(options.limit);
       if (options.offset) this.setOffset(options.offset);
-      console.log('SET JOINS');
-      
+
       if (options.joins && options.joins.length > 0)
         options.joins.forEach((join) => {
           this.addJoin(join.type, join.table, join.condition);
         });
-        console.log('JOINS', this.joins);
-        console.log('SET AGGREGATES', options.aggregates);
-        
       if (options.aggregates && options.aggregates.length > 0)
         options.aggregates.forEach((aggregate) => {
           this.addAggregate(aggregate.func, aggregate.field, aggregate.alias);
         });
-        console.log('AGGREGATES', this.aggregates);
       if (options.groupBy) this.setGroupBy(options.groupBy);
       return this;
     } catch (error) {
@@ -184,8 +179,15 @@ class QueryOptions {
    * @returns {SelectQueryBuilder} - The SelectQueryBuilder instance for method chaining.
    */
   setOrderBy(orderBy) {
-    this.orderBy = orderBy;
-    return this;
+    try {
+      if (!orderBy || typeof orderBy !== 'string') {
+        throw new Error('Invalid ORDER BY clause.');
+      }
+      this.orderBy = orderBy;
+      return this;
+    } catch (error) {
+      throw new DBError(error.message);
+    }
   }
 
   /**
@@ -229,8 +231,24 @@ class QueryOptions {
    * @returns {SelectQueryBuilder} - The SelectQueryBuilder instance for method chaining.
    */
   addJoin(type, table, condition) {
-    this.joins.push({ type, table, condition });
-    return this;
+    try {
+      if (!type || !table || !condition) {
+        const missing = !type ? 'join type' : !table ? 'table' : 'condition';
+        throw new Error(`Invalid ${missing}.`);
+      } else if (typeof type !== 'string') {
+        throw new Error('Invalid join type.');
+      } else if (typeof table !== 'string') {
+        throw new Error('Invalid table name.');
+      } else if (typeof condition !== 'string') {
+        throw new Error('Invalid join condition.');
+      }
+
+      this.joins.push({ type, table, condition });
+      return this;
+    } catch (error) {
+      console.error(error);
+      throw new DBError(error.message);
+    }
   }
 
   /**
@@ -242,8 +260,20 @@ class QueryOptions {
    */
   addAggregate(func, field, alias) {
     try {
-      if (!func || !field || !alias) {
-        const missing = !func ? 'function' : !field ? 'field' : 'alias';
+      if (
+        !func ||
+        typeof func !== 'string' ||
+        !field ||
+        typeof field !== 'string' ||
+        !alias ||
+        typeof alias !== 'string'
+      ) {
+        const missing =
+          !func || typeof func !== 'string'
+            ? 'function'
+            : !field || typeof field !== 'string'
+            ? 'field'
+            : 'alias';
         throw new Error(`Invalid ${missing}.`);
       } else if (!QueryOptions.isValidAggregateFunction(func)) {
         throw new Error('Invalid aggregate function name.');
