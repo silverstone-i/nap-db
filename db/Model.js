@@ -15,7 +15,6 @@ const SelectQueryBuilder = require('./SelectQueryBuilder');
 
 class Model {
   constructor(db, pgp, schema) {
-    try {
       if (!db || !pgp) {
         const message = !db
           ? 'Invalid database.'
@@ -41,9 +40,6 @@ class Model {
       this.schema = JSON.parse(JSON.stringify(schema));
       this.cs = this.createColumnSet();
       this.qb = new SelectQueryBuilder();
-    } catch (error) {
-      throw new DBError(error.message);
-    }
   }
 
   // ************************************Getters and Setters************************************
@@ -191,13 +187,11 @@ class Model {
       delete dto.returning;
       const qInsert =
         this.pgp.helpers.insert(dto, this.cs.insert) + ' ' + returning;
-      console.log('qInsert', qInsert);
-      console.log('dto', dto);
 
       const result = await this.db.one(qInsert, dto);
       return result;
     } catch (error) {
-      console.log('Error:', error);
+      // console.log('Error:', error);
 
       throw new DBError(error.message);
     }
@@ -207,7 +201,7 @@ class Model {
     try {
       this.qb.reset();
       options.table = this.schema.tableName;
-      this.qb.setOptions(options);
+      this.qb.Options = options;
       const { query, values } = this.qb.build();
       return await this.db.manyOrNone(query, values);
     } catch (error) {
@@ -243,7 +237,7 @@ class Model {
     try {
       this.qb.reset();
       options.table = this.schema.tableName;
-      this.qb.setOptions(options);
+      this.qb.Options = options;
       const { query, values } = this.qb.build();
       const totalCountQuery = this.#addTotalCountToQuery(query);
       return await this.db.manyOrNone(totalCountQuery, values);
@@ -267,11 +261,11 @@ class Model {
 
   //   Finds a single record based on provided conditions
 
-  async finddOne(options) {
+  async findOne(options) {
     try {
       this.qb.reset();
       options.table = this.schema.tableName;
-      this.qb.setOptions(options);
+      this.qb.Options = options;
       const { query, values } = this.qb.build();
       return await this.db.oneOrNone(query, values);
     } catch (error) {
@@ -354,12 +348,12 @@ class Model {
     try {
       this.qb.reset();
       options.table = this.schema.tableName;
-      this.qb.setOptions(options);
+      this.qb.Options = options;
       const { query, values } = this.qb.buildQuery();
       
       return await this.db.oneOrNone(query, values);
     } catch (error) {
-      console.log('Error:', error);
+      // console.log('Error:', error);
       throw new DBError(error.message);
     }
   }

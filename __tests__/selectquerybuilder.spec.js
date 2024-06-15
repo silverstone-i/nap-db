@@ -47,6 +47,7 @@ describe('SelectQueryBuilder', () => {
         .setFields(['id', 'name'])
         .addCondition({ field: 'id', operator: '=', value: 1 });
       qb.reset();
+
       expect(qb).toEqual({
         table: '',
         fields: '*',
@@ -62,27 +63,25 @@ describe('SelectQueryBuilder', () => {
     });
   });
 
-  describe('setOptions Method', () => {
+  describe('set Options Method', () => {
     it('should set the options for the query', () => {
-      qb.setOptions({
+      qb.Options = {
         table: 'users',
         fields: ['id', 'name'],
-      });
+      };
       expect(qb.table).toBe('users');
       expect(qb.fields).toEqual('id, name');
     });
 
     it('should return the SelectQueryBuilder instance for method chaining', () => {
-      const result = qb.setOptions({
-        table: 'users',
-        fields: ['id', 'name'],
-      });
+      const result = qb.setTable('users').setFields(['id', 'name']);
+
       expect(result).toBe(qb);
-    }
-    );
-    
+    });
+
     it('should not set any properties if an empty options object is provided', () => {
-      qb.setOptions({});
+      qb.Options = {};
+
       expect(qb).toEqual({
         table: '',
         fields: '*',
@@ -97,16 +96,15 @@ describe('SelectQueryBuilder', () => {
       });
     });
 
-    it('should throw an error if no options object is provided', () => {
-      expect(() => qb.setOptions()).toThrow('Invalid options object.');
-    });
-
     it('should throw an error if the options object is not an object', () => {
-      expect(() => qb.setOptions('users')).toThrow('Invalid options object.');
+      expect(() => {
+        qb.Options = 'users';
+      }).toThrow('Invalid options object.');
     });
 
     it('should not set any properties if the options are invalid', () => {
-      qb.setOptions({ cat: 'users' });
+      qb.Options = { cat: 'users' };
+
       expect(qb).toEqual({
         table: '',
         fields: '*',
@@ -122,8 +120,8 @@ describe('SelectQueryBuilder', () => {
     });
 
     it('should not throw an error if the options are valid', () => {
-      expect(() =>
-        qb.setOptions({ table: 'users', fields: ['id', 'name'] })
+      expect(
+        () => (qb.Options = { table: 'users', fields: ['id', 'name'] })
       ).not.toThrow();
     });
 
@@ -132,7 +130,7 @@ describe('SelectQueryBuilder', () => {
         { field: 'id', operator: '=', value: 1 },
         { field: 'name', operator: 'LIKE', value: 'John' },
       ];
-      qb.setOptions({ table: 'users', conditions });
+      qb.Options = { table: 'users', conditions };
       expect(qb.conditions).toEqual(conditions);
     });
 
@@ -147,16 +145,24 @@ describe('SelectQueryBuilder', () => {
           ],
         },
       ];
-      qb.setOptions({ table: 'users', conditions });
+      qb.Options = { table: 'users', conditions };
       expect(qb.conditions).toEqual(conditions);
     });
 
     it('should copy the joins object successfully', () => {
       const joins = [
-        { type: 'INNER', table: 'posts', condition: 'users.id = posts.user_id' },
-        { type: 'LEFT OUTER', table: 'comments', condition: 'users.id = comments.user_id' }
+        {
+          type: 'INNER',
+          table: 'posts',
+          condition: 'users.id = posts.user_id',
+        },
+        {
+          type: 'LEFT OUTER',
+          table: 'comments',
+          condition: 'users.id = comments.user_id',
+        },
       ];
-      qb.setOptions({ table: 'users', joins });
+      qb.Options = { table: 'users', joins };
       expect(qb.joins).toEqual(joins);
     });
 
@@ -165,7 +171,9 @@ describe('SelectQueryBuilder', () => {
         { func: 'COUNT', field: 'id', alias: 'total' },
         { func: 'AVG', field: 'age', alias: 'average' },
       ];
-      qb.setOptions({ table: 'users', aggregates });
+
+      qb.Options = { table: 'users', aggregates };
+
       expect(qb.aggregates).toEqual(aggregates);
     });
 
@@ -173,7 +181,13 @@ describe('SelectQueryBuilder', () => {
       const orderBy = 'name ASC';
       const limit = 10;
       const offset = 5;
-      qb.setOptions({ table: 'users', orderBy, limit, offset, groupBy: 'name' });
+      qb.Options = {
+        table: 'users',
+        orderBy,
+        limit,
+        offset,
+        groupBy: 'name',
+      };
       expect(qb.orderBy).toBe(orderBy);
       expect(qb.limit).toBe(limit);
       expect(qb.offset).toBe(offset);
@@ -653,7 +667,6 @@ describe('SelectQueryBuilder', () => {
           },
         ]);
 
-      console.log('TEST CONDITIONS TYPE', Array.isArray(qb.conditions)); // Output: true
       const query = qb.buildQuery();
 
       expect(query.query).toBe(
