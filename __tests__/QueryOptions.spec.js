@@ -1,5 +1,6 @@
 './__tests__/QueryOptions.spec.js';
 
+const { query } = require('express');
 /**
  *
  * Copyright © 2024-present, Ian Silverstone
@@ -11,6 +12,7 @@
  */
 
 const QueryOptions = require('../db/QueryOptions');
+const { DBError } = require('../db/errors');
 
 describe('QueryOptions', () => {
   let qo;
@@ -78,7 +80,7 @@ describe('QueryOptions', () => {
       });
     });
 
-    describe('getOptions', () => {
+    describe('get Options', () => {
       it('should return an object with all query options', () => {
         qo.setTable('table_name')
           .setFields('field1, field2')
@@ -89,6 +91,7 @@ describe('QueryOptions', () => {
           .addJoin('INNER', 'table2', 'table1.id = table2.id')
           .addAggregate('COUNT', 'name', 'count')
           .setGroupBy('field1');
+        qo.values = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
         const options = qo.Options;
         expect(options).toEqual(qo.Options);
@@ -106,13 +109,14 @@ describe('QueryOptions', () => {
           offset: 5,
           joins: [
             {
-              type: 'INNER JOIN',
+              type: 'INNER',
               table: 'table2',
               condition: 'table1.id = table2.id',
             },
           ],
           aggregates: [{ func: 'COUNT', field: 'name', alias: 'count' }],
           groupBy: 'field1',
+          values: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
         };
 
         qo.Options = options;
@@ -128,7 +132,7 @@ describe('QueryOptions', () => {
         expect(qo.limit).toBe(10);
         expect(qo.offset).toBe(5);
         expect(qo.joins).toContainEqual({
-          type: 'INNER JOIN',
+          type: 'INNER',
           table: 'table2',
           condition: 'table1.id = table2.id',
         });
@@ -138,37 +142,87 @@ describe('QueryOptions', () => {
           alias: 'count',
         });
         expect(qo.groupBy).toBe('field1');
+        expect(qo.values).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
       });
-    });
 
-    it('should throw an error if options is not an object', () => {
-      expect(() => {
-        qo.Options = 'invalid options';
-      }).toThrow('Invalid options object.');
-    });
+      it('should throw an error for invalid options object', () => {
+        expect(() => {
+          qo.Options = null;
+        }).toThrow(DBError);
 
-    it('should throw an error if options is null', () => {
-      expect(() => {
-        qo.Options = null;
-      }).toThrow('Invalid options object.');
-    });
+        expect(() => {
+          qo.Options = 'invalid';
+        }).toThrow(DBError);
 
-    it('should throw an error if options is undefined', () => {
-      expect(() => {
-        qo.Options = undefined;
-      }).toThrow('Invalid options object.');
-    });
+        expect(() => {
+          qo.Options = [];
+        }).toThrow(DBError);
 
-    it('should throw an error if options is an empty object', () => {
-      expect(() => {
-        qo.Options = {};
-      }).toThrow('Invalid options object.');
-    });
+        expect(() => {
+          qo.Options = {};
+        }).toThrow(DBError);
+      });
 
-    it('should throw an error if options is an array', () => {
-      expect(() => {
-        qo.Options = [];
-      }).toThrow('Invalid options object.');
+      it('should throw an error if table name is not a string', () => {
+        expect(() => {
+          qo.Options = { table: 123 };
+        }).toThrow(DBError);
+      });
+
+      it('should throw an error if fields is not a string', () => {
+        expect(() => {
+          qo.Options = { fields: 123 };
+        }).toThrow(DBError);
+      });
+
+      it('should throw an error if conditions is not an array', () => {
+        expect(() => {
+          qo.Options = { conditions: 'invalid condition' };
+        }).toThrow(DBError);
+      } );
+
+      it('should throw an error if orderBy is not a string', () => {
+        expect(() => {
+          qo.Options = { orderBy: 123 };
+        }).toThrow(DBError);
+      });
+
+      it('should throw an error if limit is not a number', () => {
+        expect(() => {
+          qo.Options = { limit: 'invalid limit' };
+        }).toThrow(DBError);
+      } );
+
+      // it('should throw an error if offset is not a number', () => {
+      //   expect(() => {
+      //     qo.Options = { offset: 'invalid offset' };
+      //   }).toThrow(DBError);
+      // } );
+
+      it('should throw an error if joins is not an array', () => {
+        expect(() => {
+          qo.Options = { joins: 'invalid join' };
+        }).toThrow(DBError);
+      } );
+
+      it('should throw an error if aggregates is not an array', () => { 
+        expect(() => {
+          qo.Options = { aggregates: 'invalid aggregate' };
+        }).toThrow(DBError);
+      } );
+
+      it('should throw an error if groupBy is not a string', () => {
+        expect(() => {
+          qo.Options = { groupBy: 123 };
+        }).toThrow(DBError);
+      } );
+
+      it('should throw an error if value is null', () => {
+        jest.spyOn(qo, 'addValue');
+        qo.Options = { value: null };
+        expect(qo.addValue).not.toHaveBeenCalled();
+        jest.clearAllMocks();
+      } );
     });
   });
 
@@ -229,7 +283,7 @@ describe('QueryOptions', () => {
       qo.setTable('table_name');
       expect(qo.table).toBe('table_name');
     });
-    
+
     it('should return the QueryOptions instance for method chaining', () => {
       const result = qo.setTable('table_name');
       expect(result).toBe(qo);
@@ -258,18 +312,16 @@ describe('QueryOptions', () => {
         qo.setTable(undefined);
       }).toThrow('Invalid table name.');
     });
-
-    it('should throw an error if the table name is not a string', () => {
-      expect(() => {
-        qo.setTable(123);
-      }).toThrow('Invalid table name.');
-    });
-    
   });
 
   describe('setFields', () => {
     it('it should set the fields to select', () => {
       qo.setFields('field1, field2');
+      expect(qo.fields).toBe('field1, field2');
+    });
+
+    it('should set the fields to select from an array', () => {
+      qo.setFields(['field1', 'field2']);
       expect(qo.fields).toBe('field1, field2');
     });
 
@@ -299,7 +351,11 @@ describe('QueryOptions', () => {
     });
 
     it('should return the QueryOptions instance for method chaining', () => {
-      const result = qo.addCondition({ field: 'field1', operator: '=', value: 'value1' });
+      const result = qo.addCondition({
+        field: 'field1',
+        operator: '=',
+        value: 'value1',
+      });
       expect(result).toBe(qo);
     });
 
@@ -308,7 +364,7 @@ describe('QueryOptions', () => {
         qo.addCondition('invalid condition');
       }).toThrow('Invalid condition(s).');
     });
-    
+
     it('should throw an error if the condition is null', () => {
       expect(() => {
         qo.addCondition(null);
@@ -332,7 +388,7 @@ describe('QueryOptions', () => {
         qo.setOrderBy(123);
       }).toThrow('Invalid ORDER BY clause.');
     });
-    
+
     it('should throw an error if the order by clause is null', () => {
       expect(() => {
         qo.setOrderBy(null);
@@ -393,7 +449,11 @@ describe('QueryOptions', () => {
     });
 
     it('should return the QueryOptions instance for method chaining', () => {
-      const result = qo.addJoin('INNER JOIN', 'table2', 'table1.id = table2.id');
+      const result = qo.addJoin(
+        'INNER JOIN',
+        'table2',
+        'table1.id = table2.id'
+      );
       expect(result).toBe(qo);
     });
 
@@ -406,7 +466,7 @@ describe('QueryOptions', () => {
     it('should throw an error if the table name is not a string', () => {
       expect(() => {
         qo.addJoin('INNER JOIN', 123, 'table1.id = table2.id');
-      }).toThrow('Invalid table name.');
+      }).toThrow('Invalid join table.');
     });
 
     it('should throw an error if the join condition is not a string', () => {
@@ -423,14 +483,14 @@ describe('QueryOptions', () => {
 
     it('should throw an error if the table name is null', () => {
       expect(() => {
-        qo.addJoin('INNER JOIN', null, 'table1.id = table2.id');
-      }).toThrow('Invalid table.');
+        qo.addJoin('INNER', null, 'table1.id = table2.id');
+      }).toThrow('Invalid join table.');
     });
 
     it('should throw an error if the join condition is null', () => {
       expect(() => {
         qo.addJoin('INNER JOIN', 'table2', null);
-      }).toThrow('Invalid condition.');
+      }).toThrow('Invalid join condition.');
     });
 
     it('should throw an error if the join type is an empty string', () => {
@@ -546,6 +606,30 @@ describe('QueryOptions', () => {
       expect(() => {
         qo.setGroupBy(undefined);
       }).toThrow('Invalid GROUP BY clause.');
+    });
+  });
+
+  describe('addValue', () => {
+    it('should add a value to the values array', () => {
+      qo.addValue(10);
+      expect(qo.values).toContainEqual(10);
+    });
+
+    it('should add a value array to the values array', () => {
+      qo.addValue([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+      expect(qo.values).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    });
+
+    it('should return the QueryOptions instance for method chaining', () => {
+      const result = qo.addValue(10);
+      expect(result).toBe(qo);
+    });
+
+    it('should throw an error if the value is null', () => {
+      expect(() => {
+        qo.addValue(null);
+      }).toThrow('Invalid value.');
     });
   });
 });

@@ -18,7 +18,7 @@ class QueryOptions {
   }
 
   get Options() {
-    return {
+    const options = {
       table: this.table,
       fields: this.fields,
       conditions: this.conditions,
@@ -28,9 +28,18 @@ class QueryOptions {
       joins: this.joins,
       aggregates: this.aggregates,
       groupBy: this.groupBy,
+      values: this.values,
     };
+
+    return options;
   }
 
+  /**
+   * Validates and sets various query parameters for the QueryOptions instance.
+   * @param {Object} options - An object containing query parameters.
+   * @returns {QueryOptions} - The QueryOptions instance with updated properties.
+   * @throws {DBError} - If the options object is invalid.
+   */
   set Options(options) {
     try {
       if (
@@ -41,28 +50,40 @@ class QueryOptions {
       ) {
         throw new Error('Invalid options object.');
       }
-      if (options.table) this.setTable(options.table);
-      if (options.fields) this.setFields(options.fields);
-      if (options.conditions && options.conditions.length > 0)
-        options.conditions.forEach((condition) => {
-          this.addCondition(condition);
-        });
-      if (options.orderBy) this.setOrderBy(options.orderBy);
-      if (options.limit) this.setLimit(options.limit);
-      if (options.offset) this.setOffset(options.offset);
 
-      if (options.joins && options.joins.length > 0)
-        options.joins.forEach((join) => {
-          this.addJoin(join.type, join.table, join.condition);
-        });
-      if (options.aggregates && options.aggregates.length > 0)
-        options.aggregates.forEach((aggregate) => {
-          this.addAggregate(aggregate.func, aggregate.field, aggregate.alias);
-        });
-      if (options.groupBy) this.setGroupBy(options.groupBy);
+      const {
+        table,
+        fields,
+        conditions,
+        orderBy,
+        limit,
+        offset,
+        joins,
+        aggregates,
+        groupBy,
+        values,
+      } = options;
+      
+      if (table) this.setTable(table);
+      if (fields) this.setFields(fields);
+      if (conditions && conditions.length > 0)
+        conditions.forEach((condition) => this.addCondition(condition));
+      if (orderBy) this.setOrderBy(orderBy);
+      if (limit) this.setLimit(limit);
+      if (offset) this.setOffset(offset);
+      if (joins && joins.length > 0)
+        joins.forEach((join) =>
+          this.addJoin(join.type, join.table, join.condition)
+        );
+      if (aggregates && aggregates.length > 0)
+        aggregates.forEach((aggregate) =>
+          this.addAggregate(aggregate.func, aggregate.field, aggregate.alias)
+        );
+      if (groupBy) this.setGroupBy(groupBy);
+      if (values) this.addValue(values);
+
       return this;
     } catch (error) {
-      // console.error(error);
       throw new DBError(error.message);
     }
   }
@@ -119,7 +140,7 @@ class QueryOptions {
    */
   setTable(table) {
     try {
-      if (!table || typeof table !== 'string') {
+      if (!table || typeof table !== 'string' || table === '') {
         throw new Error('Invalid table name.');
       } else {
         this.table = table;
@@ -232,21 +253,22 @@ class QueryOptions {
    */
   addJoin(type, table, condition) {
     try {
-      if (!type || !table || !condition) {
-        const missing = !type ? 'join type' : !table ? 'table' : 'condition';
+      if (
+        !type ||
+        !table ||
+        !condition ||
+        typeof type !== 'string' ||
+        typeof table !== 'string' ||
+        typeof condition !== 'string'
+      ) {
+        const missing = !type || typeof type !== 'string' ? 'join type' : !table || typeof table !== 'string' ? 'join table' : 'join condition';
         throw new Error(`Invalid ${missing}.`);
-      } else if (typeof type !== 'string') {
-        throw new Error('Invalid join type.');
-      } else if (typeof table !== 'string') {
-        throw new Error('Invalid table name.');
-      } else if (typeof condition !== 'string') {
-        throw new Error('Invalid join condition.');
       }
 
       this.joins.push({ type, table, condition });
       return this;
     } catch (error) {
-      console.error(error);
+      // console.error(error);
       throw new DBError(error.message);
     }
   }
@@ -278,8 +300,6 @@ class QueryOptions {
       } else if (!QueryOptions.isValidAggregateFunction(func)) {
         throw new Error('Invalid aggregate function name.');
       } else {
-        console.log('{ func: ', func, 'field: ', field, 'alias: ', alias, '}');
-        console.log('this.aggregates:', this.aggregates);
         this.aggregates.push({ func, field, alias });
         return this;
       }
@@ -300,6 +320,25 @@ class QueryOptions {
         throw new Error('Invalid GROUP BY clause.');
       }
       this.groupBy = groupBy;
+      return this;
+    } catch (error) {
+      // console.error(error);
+      throw new DBError(error.message);
+    }
+  }
+
+  addValue(value) {
+    try {
+      if (value === undefined || value === null) {
+        throw new Error('Invalid value.');
+      }
+
+      if (Array.isArray(value)) {
+        this.values.push(...value);
+      } else {
+        this.values.push(value);
+      }
+
       return this;
     } catch (error) {
       // console.error(error);
