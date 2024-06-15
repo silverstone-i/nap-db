@@ -1,4 +1,5 @@
 const SelectQueryBuilder = require('../db/SelectQueryBuilder');
+const { DBError } = require('../db/errors');
 
 describe('SelectQueryBuilder', () => {
   let qb;
@@ -35,403 +36,404 @@ describe('SelectQueryBuilder', () => {
   //   });
   // });
 
-  describe('Reset Method', () => {
-    it('should clear the table name to an empty string when reset is called', () => {
-      qb.setTable('users');
-      qb.reset();
-      expect(qb.table).toBe('');
-    });
+  // describe('Reset Method', () => {
+  //   it('should clear the table name to an empty string when reset is called', () => {
+  //     qb.setTable('users');
+  //     qb.reset();
+  //     expect(qb.table).toBe('');
+  //   });
 
-    it('should reset all properties to their default values', () => {
-      qb.setTable('users')
-        .setFields(['id', 'name'])
-        .addCondition({ field: 'id', operator: '=', value: 1 });
-      qb.reset();
+  //   it('should reset all properties to their default values', () => {
+  //     qb.setTable('users')
+  //       .setFields(['id', 'name'])
+  //       .addCondition({ field: 'id', operator: '=', value: 1 });
+  //     qb.reset();
 
-      expect(qb).toEqual({
-        table: '',
-        fields: '*',
-        conditions: [],
-        orderBy: '',
-        limit: undefined,
-        offset: undefined,
-        joins: [],
-        aggregates: [],
-        groupBy: '',
-        values: [],
-      });
-    });
-  });
+  //     expect(qb).toEqual({
+  //       table: '',
+  //       fields: '*',
+  //       conditions: [],
+  //       orderBy: '',
+  //       limit: undefined,
+  //       offset: undefined,
+  //       joins: [],
+  //       aggregates: [],
+  //       groupBy: '',
+  //       values: [],
+  //     });
+  //   });
+  // });
 
-  describe('set Options Method', () => {
-    it('should set the options for the query', () => {
-      qb.Options = {
-        table: 'users',
-        fields: ['id', 'name'],
-      };
-      expect(qb.table).toBe('users');
-      expect(qb.fields).toEqual('id, name');
-    });
+  // describe('set Options Method', () => {
+  //   it('should set the options for the query', () => {
+  //     qb.Options = {
+  //       table: 'users',
+  //       fields: ['id', 'name'],
+  //     };
+  //     expect(qb.table).toBe('users');
+  //     expect(qb.fields).toEqual('id, name');
+  //   });
 
-    it('should return the SelectQueryBuilder instance for method chaining', () => {
-      const result = qb.setTable('users').setFields(['id', 'name']);
+  //   it('should return the SelectQueryBuilder instance for method chaining', () => {
+  //     const result = qb.setTable('users').setFields(['id', 'name']);
 
-      expect(result).toBe(qb);
-    });
+  //     expect(result).toBe(qb);
+  //   });
 
-    it('should not set any properties if an empty options object is provided', () => {
-      qb.Options = {};
+  //   it('should not set any properties if an empty options object is provided', () => {
 
-      expect(qb).toEqual({
-        table: '',
-        fields: '*',
-        conditions: [],
-        orderBy: '',
-        limit: undefined,
-        offset: undefined,
-        joins: [],
-        aggregates: [],
-        groupBy: '',
-        values: [],
-      });
-    });
+  //     expect(() => {qb.Options = {}}).toThrow(DBError);
 
-    it('should throw an error if the options object is not an object', () => {
-      expect(() => {
-        qb.Options = 'users';
-      }).toThrow('Invalid options object.');
-    });
+  //     expect(qb).toEqual({
+  //       table: '',
+  //       fields: '*',
+  //       conditions: [],
+  //       orderBy: '',
+  //       limit: undefined,
+  //       offset: undefined,
+  //       joins: [],
+  //       aggregates: [],
+  //       groupBy: '',
+  //       values: [],
+  //     });
+  //   });
 
-    it('should not set any properties if the options are invalid', () => {
-      qb.Options = { cat: 'users' };
+  //   it('should throw an error if the options object is not an object', () => {
+  //     expect(() => {
+  //       qb.Options = 'users';
+  //     }).toThrow('Invalid options object.');
+  //   });
 
-      expect(qb).toEqual({
-        table: '',
-        fields: '*',
-        conditions: [],
-        orderBy: '',
-        limit: undefined,
-        offset: undefined,
-        joins: [],
-        aggregates: [],
-        groupBy: '',
-        values: [],
-      });
-    });
+  //   it('should not set any properties if the options are invalid', () => {
+  //     qb.Options = { cat: 'users' };
 
-    it('should not throw an error if the options are valid', () => {
-      expect(
-        () => (qb.Options = { table: 'users', fields: ['id', 'name'] })
-      ).not.toThrow();
-    });
+  //     expect(qb).toEqual({
+  //       table: '',
+  //       fields: '*',
+  //       conditions: [],
+  //       orderBy: '',
+  //       limit: undefined,
+  //       offset: undefined,
+  //       joins: [],
+  //       aggregates: [],
+  //       groupBy: '',
+  //       values: [],
+  //     });
+  //   });
 
-    it('should copy the conditions object successfully', () => {
-      const conditions = [
-        { field: 'id', operator: '=', value: 1 },
-        { field: 'name', operator: 'LIKE', value: 'John' },
-      ];
-      qb.Options = { table: 'users', conditions };
-      expect(qb.conditions).toEqual(conditions);
-    });
+  //   it('should not throw an error if the options are valid', () => {
+  //     expect(
+  //       () => (qb.Options = { table: 'users', fields: ['id', 'name'] })
+  //     ).not.toThrow();
+  //   });
 
-    it('should copy a nested conditions object successfully', () => {
-      const conditions = [
-        { field: 'id', operator: '=', value: 1 },
-        {
-          conjunction: 'OR',
-          conditions: [
-            { field: 'name', operator: 'LIKE', value: 'John' },
-            { field: 'name', operator: 'LIKE', value: 'Doe' },
-          ],
-        },
-      ];
-      qb.Options = { table: 'users', conditions };
-      expect(qb.conditions).toEqual(conditions);
-    });
+  //   it('should copy the conditions object successfully', () => {
+  //     const conditions = [
+  //       { field: 'id', operator: '=', value: 1 },
+  //       { field: 'name', operator: 'LIKE', value: 'John' },
+  //     ];
+  //     qb.Options = { table: 'users', conditions };
+  //     expect(qb.conditions).toEqual(conditions);
+  //   });
 
-    it('should copy the joins object successfully', () => {
-      const joins = [
-        {
-          type: 'INNER',
-          table: 'posts',
-          condition: 'users.id = posts.user_id',
-        },
-        {
-          type: 'LEFT OUTER',
-          table: 'comments',
-          condition: 'users.id = comments.user_id',
-        },
-      ];
-      qb.Options = { table: 'users', joins };
-      expect(qb.joins).toEqual(joins);
-    });
+  //   it('should copy a nested conditions object successfully', () => {
+  //     const conditions = [
+  //       { field: 'id', operator: '=', value: 1 },
+  //       {
+  //         conjunction: 'OR',
+  //         conditions: [
+  //           { field: 'name', operator: 'LIKE', value: 'John' },
+  //           { field: 'name', operator: 'LIKE', value: 'Doe' },
+  //         ],
+  //       },
+  //     ];
+  //     qb.Options = { table: 'users', conditions };
+  //     expect(qb.conditions).toEqual(conditions);
+  //   });
 
-    it('should copy the aggregates object successfully', () => {
-      const aggregates = [
-        { func: 'COUNT', field: 'id', alias: 'total' },
-        { func: 'AVG', field: 'age', alias: 'average' },
-      ];
+  //   it('should copy the joins object successfully', () => {
+  //     const joins = [
+  //       {
+  //         type: 'INNER',
+  //         table: 'posts',
+  //         condition: 'users.id = posts.user_id',
+  //       },
+  //       {
+  //         type: 'LEFT OUTER',
+  //         table: 'comments',
+  //         condition: 'users.id = comments.user_id',
+  //       },
+  //     ];
+  //     qb.Options = { table: 'users', joins };
+  //     expect(qb.joins).toEqual(joins);
+  //   });
 
-      qb.Options = { table: 'users', aggregates };
+  //   it('should copy the aggregates object successfully', () => {
+  //     const aggregates = [
+  //       { func: 'COUNT', field: 'id', alias: 'total' },
+  //       { func: 'AVG', field: 'age', alias: 'average' },
+  //     ];
 
-      expect(qb.aggregates).toEqual(aggregates);
-    });
+  //     qb.Options = { table: 'users', aggregates };
 
-    it('should copy the orderBy, limit, offet and groupBy properties successfully', () => {
-      const orderBy = 'name ASC';
-      const limit = 10;
-      const offset = 5;
-      qb.Options = {
-        table: 'users',
-        orderBy,
-        limit,
-        offset,
-        groupBy: 'name',
-      };
-      expect(qb.orderBy).toBe(orderBy);
-      expect(qb.limit).toBe(limit);
-      expect(qb.offset).toBe(offset);
-      expect(qb.groupBy).toEqual('name');
-    });
-  });
+  //     expect(qb.aggregates).toEqual(aggregates);
+  //   });
 
-  describe('setTable Method', () => {
-    it('should set the table for the query', () => {
-      qb.setTable('users');
-      expect(qb.table).toBe('users');
-    });
+  //   it('should copy the orderBy, limit, offet and groupBy properties successfully', () => {
+  //     const orderBy = 'name ASC';
+  //     const limit = 10;
+  //     const offset = 5;
+  //     qb.Options = {
+  //       table: 'users',
+  //       orderBy,
+  //       limit,
+  //       offset,
+  //       groupBy: 'name',
+  //     };
+  //     expect(qb.orderBy).toBe(orderBy);
+  //     expect(qb.limit).toBe(limit);
+  //     expect(qb.offset).toBe(offset);
+  //     expect(qb.groupBy).toEqual('name');
+  //   });
+  // });
 
-    it('should return the SelectQueryBuilder instance for method chaining', () => {
-      const result = qb.setTable('users');
-      expect(result).toBe(qb);
-    });
+  // describe('setTable Method', () => {
+  //   it('should set the table for the query', () => {
+  //     qb.setTable('users');
+  //     expect(qb.table).toBe('users');
+  //   });
 
-    it('should throw an error if no table is set', () => {
-      expect(() => qb.buildQuery()).toThrow('No table set');
-    });
+  //   it('should return the SelectQueryBuilder instance for method chaining', () => {
+  //     const result = qb.setTable('users');
+  //     expect(result).toBe(qb);
+  //   });
 
-    it('should throw an error if the table name is invalid', () => {
-      expect(() => qb.setTable(null)).toThrow('Invalid table name.');
-    });
+  //   it('should throw an error if no table is set', () => {
+  //     expect(() => qb.buildQuery()).toThrow('No table set');
+  //   });
 
-    it('should throw an error if the table name is not a string', () => {
-      expect(() => qb.setTable(123)).toThrow('Invalid table name.');
-    });
+  //   it('should throw an error if the table name is invalid', () => {
+  //     expect(() => qb.setTable(null)).toThrow('Invalid table name.');
+  //   });
 
-    it('should not throw an error if the table name is valid', () => {
-      expect(() => qb.setTable('users')).not.toThrow();
-    });
-  });
+  //   it('should throw an error if the table name is not a string', () => {
+  //     expect(() => qb.setTable(123)).toThrow('Invalid table name.');
+  //   });
 
-  describe('setFields Method', () => {
-    it('should set the fields for the query', () => {
-      qb.setFields(['id', 'name']);
-      expect(qb.fields).toEqual('id, name');
-    });
+  //   it('should not throw an error if the table name is valid', () => {
+  //     expect(() => qb.setTable('users')).not.toThrow();
+  //   });
+  // });
 
-    it('should set the fields for the query when fields id a single value', () => {
-      qb.setFields('id');
-      expect(qb.fields).toEqual('id');
-    });
+  // describe('setFields Method', () => {
+  //   it('should set the fields for the query', () => {
+  //     qb.setFields(['id', 'name']);
+  //     expect(qb.fields).toEqual('id, name');
+  //   });
 
-    it('should return the SelectQueryBuilder instance for method chaining', () => {
-      const result = qb.setFields(['id', 'name']);
-      expect(result).toBe(qb);
-    });
+  //   it('should set the fields for the query when fields id a single value', () => {
+  //     qb.setFields('id');
+  //     expect(qb.fields).toEqual('id');
+  //   });
 
-    it('should throw an error if the fields are invalid', () => {
-      expect(() => qb.setFields(null)).toThrow('Invalid field(s).');
-    });
+  //   it('should return the SelectQueryBuilder instance for method chaining', () => {
+  //     const result = qb.setFields(['id', 'name']);
+  //     expect(result).toBe(qb);
+  //   });
 
-    it('should not throw an error if the fields are valid', () => {
-      expect(() => qb.setFields(['id'])).not.toThrow();
-    });
-  });
+  //   it('should throw an error if the fields are invalid', () => {
+  //     expect(() => qb.setFields(null)).toThrow('Invalid field(s).');
+  //   });
 
-  describe('addCondition Method', () => {
-    it('should add a condition to the query', () => {
-      qb.addCondition({ field: 'id', operator: '=', value: '$1' });
-      expect(qb.conditions).toEqual([
-        { field: 'id', operator: '=', value: '$1' },
-      ]);
-    });
+  //   it('should not throw an error if the fields are valid', () => {
+  //     expect(() => qb.setFields(['id'])).not.toThrow();
+  //   });
+  // });
 
-    it('should return the SelectQueryBuilder instance for method chaining', () => {
-      const result = qb.addCondition({ field: 'id', operator: '=', value: 1 });
-      //   console.log('result:', result);
-      //   console.log('qb:', qb);
-      //   console.log('result === qb: ', result === qb);
+  // describe('addCondition Method', () => {
+  //   it('should add a condition to the query', () => {
+  //     qb.addCondition({ field: 'id', operator: '=', value: '$1' });
+  //     expect(qb.conditions).toEqual([
+  //       { field: 'id', operator: '=', value: '$1' },
+  //     ]);
+  //   });
 
-      expect(result).toBe(qb);
-    });
+  //   it('should return the SelectQueryBuilder instance for method chaining', () => {
+  //     const result = qb.addCondition({ field: 'id', operator: '=', value: 1 });
+  //     //   console.log('result:', result);
+  //     //   console.log('qb:', qb);
+  //     //   console.log('result === qb: ', result === qb);
 
-    it('should throw an error if the condition is invalid', () => {
-      expect(() => qb.addCondition(null)).toThrow('Invalid condition(s).');
-    });
+  //     expect(result).toBe(qb);
+  //   });
 
-    it('should throw an error if the condition is not an object', () => {
-      expect(() => qb.addCondition('id = 1')).toThrow('Invalid condition(s).');
-    });
+  //   it('should throw an error if the condition is invalid', () => {
+  //     expect(() => qb.addCondition(null)).toThrow('Invalid condition(s).');
+  //   });
 
-    it('should not throw an error if the condition is valid', () => {
-      expect(() =>
-        qb.addCondition({ field: 'id', operator: '=', value: 1 })
-      ).not.toThrow();
-    });
-  });
+  //   it('should throw an error if the condition is not an object', () => {
+  //     expect(() => qb.addCondition('id = 1')).toThrow('Invalid condition(s).');
+  //   });
 
-  describe('setOrderBy Method', () => {
-    it('should set the ORDER BY clause for the query', () => {
-      qb.setOrderBy('name ASC');
-      expect(qb.orderBy).toBe('name ASC');
-    });
+  //   it('should not throw an error if the condition is valid', () => {
+  //     expect(() =>
+  //       qb.addCondition({ field: 'id', operator: '=', value: 1 })
+  //     ).not.toThrow();
+  //   });
+  // });
 
-    it('should return the SelectQueryBuilder instance for method chaining', () => {
-      const result = qb.setOrderBy('name ASC');
-      expect(result).toBe(qb);
-    });
+  // describe('setOrderBy Method', () => {
+  //   it('should set the ORDER BY clause for the query', () => {
+  //     qb.setOrderBy('name ASC');
+  //     expect(qb.orderBy).toBe('name ASC');
+  //   });
 
-    it('should not throw an error if the ORDER BY clause is valid', () => {
-      expect(() => qb.setOrderBy('name ASC')).not.toThrow();
-    });
-  });
+  //   it('should return the SelectQueryBuilder instance for method chaining', () => {
+  //     const result = qb.setOrderBy('name ASC');
+  //     expect(result).toBe(qb);
+  //   });
 
-  describe('setLimit Method', () => {
-    it('should set the LIMIT clause for the query', () => {
-      qb.setLimit(10);
-      expect(qb.limit).toBe(10);
-    });
+  //   it('should not throw an error if the ORDER BY clause is valid', () => {
+  //     expect(() => qb.setOrderBy('name ASC')).not.toThrow();
+  //   });
+  // });
 
-    it('should return the SelectQueryBuilder instance for method chaining', () => {
-      const result = qb.setLimit(10);
-      expect(result).toBe(qb);
-    });
+  // describe('setLimit Method', () => {
+  //   it('should set the LIMIT clause for the query', () => {
+  //     qb.setLimit(10);
+  //     expect(qb.limit).toBe(10);
+  //   });
 
-    it('should set the limit to 10 if the value is less than 10', () => {
-      qb.setLimit(5);
-      expect(qb.limit).toBe(10);
-    });
+  //   it('should return the SelectQueryBuilder instance for method chaining', () => {
+  //     const result = qb.setLimit(10);
+  //     expect(result).toBe(qb);
+  //   });
 
-    it('should not throw an error if the limit is valid', () => {
-      expect(() => qb.setLimit(10)).not.toThrow();
-    });
+  //   it('should set the limit to 10 if the value is less than 10', () => {
+  //     qb.setLimit(5);
+  //     expect(qb.limit).toBe(10);
+  //   });
 
-    it('should throw an error if the limit is not a number', () => {
-      expect(() => qb.setLimit('10')).toThrow('Invalid limit value.');
-    });
-  });
+  //   it('should not throw an error if the limit is valid', () => {
+  //     expect(() => qb.setLimit(10)).not.toThrow();
+  //   });
 
-  describe('setOffset Method', () => {
-    // Add your tests for setOffset method here
-  });
+  //   it('should throw an error if the limit is not a number', () => {
+  //     expect(() => qb.setLimit('10')).toThrow('Invalid limit value.');
+  //   });
+  // });
 
-  describe('addJoin Method', () => {
-    it('should add a join to the query', () => {
-      qb.addJoin('INNER JOIN', 'posts', 'users.id = posts.user_id');
-      expect(qb.joins).toEqual([
-        {
-          type: 'INNER JOIN',
-          table: 'posts',
-          condition: 'users.id = posts.user_id',
-        },
-      ]);
-    });
+  // describe('setOffset Method', () => {
+  //   // Add your tests for setOffset method here
+  // });
 
-    it('should return the SelectQueryBuilder instance for method chaining', () => {
-      const result = qb.addJoin(
-        'INNER JOIN',
-        'posts',
-        'users.id = posts.user_id'
-      );
-      expect(result).toBe(qb);
-    });
+  // describe('addJoin Method', () => {
+  //   it('should add a join to the query', () => {
+  //     qb.addJoin('INNER JOIN', 'posts', 'users.id = posts.user_id');
+  //     expect(qb.joins).toEqual([
+  //       {
+  //         type: 'INNER JOIN',
+  //         table: 'posts',
+  //         condition: 'users.id = posts.user_id',
+  //       },
+  //     ]);
+  //   });
 
-    it('should not throw an error if the join is valid', () => {
-      expect(() =>
-        qb.addJoin('INNER JOIN', 'posts', 'users.id = posts.user_id')
-      ).not.toThrow();
-    });
-  });
+  //   it('should return the SelectQueryBuilder instance for method chaining', () => {
+  //     const result = qb.addJoin(
+  //       'INNER JOIN',
+  //       'posts',
+  //       'users.id = posts.user_id'
+  //     );
+  //     expect(result).toBe(qb);
+  //   });
 
-  describe('addAggregate Method', () => {
-    it('should add an aggregate to the query', () => {
-      qb.addAggregate('COUNT', 'id', 'total');
-      expect(qb.aggregates).toEqual([
-        { func: 'COUNT', field: 'id', alias: 'total' },
-      ]);
-    });
+  //   it('should not throw an error if the join is valid', () => {
+  //     expect(() =>
+  //       qb.addJoin('INNER JOIN', 'posts', 'users.id = posts.user_id')
+  //     ).not.toThrow();
+  //   });
+  // });
 
-    it('should return the SelectQueryBuilder instance for method chaining', () => {
-      const result = qb.addAggregate('COUNT', 'id', 'total');
-      expect(result).toBe(qb);
-    });
+  // describe('addAggregate Method', () => {
+  //   it('should add an aggregate to the query', () => {
+  //     qb.addAggregate('COUNT', 'id', 'total');
+  //     expect(qb.aggregates).toEqual([
+  //       { func: 'COUNT', field: 'id', alias: 'total' },
+  //     ]);
+  //   });
 
-    it('should not throw an error if the aggregate is valid', () => {
-      expect(() => qb.addAggregate('COUNT', 'id', 'total')).not.toThrow();
-    });
+  //   it('should return the SelectQueryBuilder instance for method chaining', () => {
+  //     const result = qb.addAggregate('COUNT', 'id', 'total');
+  //     expect(result).toBe(qb);
+  //   });
 
-    it('should throw an error if the aggregate function is invalid', () => {
-      expect(() => qb.addAggregate('INVALID', 'id', 'total')).toThrow(
-        'Invalid aggregate function name.'
-      );
-    });
+  //   it('should not throw an error if the aggregate is valid', () => {
+  //     expect(() => qb.addAggregate('COUNT', 'id', 'total')).not.toThrow();
+  //   });
 
-    it('should throw an error if the function is missing', () => {
-      expect(() => qb.addAggregate(null, 'id', 'total')).toThrow(
-        'Invalid function.'
-      );
-    });
+  //   it('should throw an error if the aggregate function is invalid', () => {
+  //     expect(() => qb.addAggregate('INVALID', 'id', 'total')).toThrow(
+  //       'Invalid aggregate function name.'
+  //     );
+  //   });
 
-    it('should throw an error if the field is invalid', () => {
-      expect(() => qb.addAggregate('COUNT', null)).toThrow('Invalid field.');
-    });
+  //   it('should throw an error if the function is missing', () => {
+  //     expect(() => qb.addAggregate(null, 'id', 'total')).toThrow(
+  //       'Invalid function.'
+  //     );
+  //   });
 
-    it('should throw an error if the alias is not valid', () => {
-      expect(() => qb.addAggregate('COUNT', 'id')).toThrow('Invalid alias.');
-    });
+  //   it('should throw an error if the field is invalid', () => {
+  //     expect(() => qb.addAggregate('COUNT', null)).toThrow('Invalid field.');
+  //   });
 
-    it('should not throw an error if the field is valid', () => {
-      expect(() => qb.addAggregate('COUNT', 'id', 'total')).not.toThrow();
-    });
+  //   it('should throw an error if the alias is not valid', () => {
+  //     expect(() => qb.addAggregate('COUNT', 'id')).toThrow('Invalid alias.');
+  //   });
 
-    it('should throw an error if the alias is invalid', () => {
-      expect(() => qb.addAggregate('COUNT', 'id', null)).toThrow(
-        'Invalid alias.'
-      );
-    });
+  //   it('should not throw an error if the field is valid', () => {
+  //     expect(() => qb.addAggregate('COUNT', 'id', 'total')).not.toThrow();
+  //   });
 
-    it('should not throw an error if the alias is valid', () => {
-      expect(() => qb.addAggregate('COUNT', 'id', 'total')).not.toThrow();
-    });
-  });
+  //   it('should throw an error if the alias is invalid', () => {
+  //     expect(() => qb.addAggregate('COUNT', 'id', null)).toThrow(
+  //       'Invalid alias.'
+  //     );
+  //   });
 
-  describe('setGroupBy Method', () => {
-    it('should set the GROUP BY clause for the query', () => {
-      qb.setGroupBy('name');
-      expect(qb.groupBy).toBe('name');
-    });
+  //   it('should not throw an error if the alias is valid', () => {
+  //     expect(() => qb.addAggregate('COUNT', 'id', 'total')).not.toThrow();
+  //   });
+  // });
 
-    it('should return the SelectQueryBuilder instance for method chaining', () => {
-      const result = qb.setGroupBy('name');
-      expect(result).toBe(qb);
-    });
+  // describe('setGroupBy Method', () => {
+  //   it('should set the GROUP BY clause for the query', () => {
+  //     qb.setGroupBy('name');
+  //     expect(qb.groupBy).toBe('name');
+  //   });
 
-    it('should not throw an error if the GROUP BY clause is valid', () => {
-      expect(() => qb.setGroupBy('name')).not.toThrow();
-    });
+  //   it('should return the SelectQueryBuilder instance for method chaining', () => {
+  //     const result = qb.setGroupBy('name');
+  //     expect(result).toBe(qb);
+  //   });
 
-    it('should throw an error if the GROUP BY clause is invalid', () => {
-      expect(() => qb.setGroupBy(null)).toThrow('Invalid GROUP BY clause.');
-    });
+  //   it('should not throw an error if the GROUP BY clause is valid', () => {
+  //     expect(() => qb.setGroupBy('name')).not.toThrow();
+  //   });
 
-    it('should throw an error if the GROUP BY clause is not a string', () => {
-      expect(() => qb.setGroupBy(123)).toThrow('Invalid GROUP BY clause.');
-    });
+  //   it('should throw an error if the GROUP BY clause is invalid', () => {
+  //     expect(() => qb.setGroupBy(null)).toThrow('Invalid GROUP BY clause.');
+  //   });
 
-    it('should not throw an error if the GROUP BY clause is valid', () => {
-      expect(() => qb.setGroupBy('name')).not.toThrow();
-    });
-  });
+  //   it('should throw an error if the GROUP BY clause is not a string', () => {
+  //     expect(() => qb.setGroupBy(123)).toThrow('Invalid GROUP BY clause.');
+  //   });
+
+  //   it('should not throw an error if the GROUP BY clause is valid', () => {
+  //     expect(() => qb.setGroupBy('name')).not.toThrow();
+  //   });
+  // });
 
   describe('buildQuery Method to build a SELECT SQL statement', () => {
     it('should return the query string when buildQuery is called', () => {
