@@ -19,7 +19,7 @@ const connection = {
 
 class Users extends Model {
   constructor(db, pgp) {
-    const schema = {
+    super(db, pgp, {
       tableName: 'users',
       dbSchema: 'public',
       timeStamps: true, // Add time stamps to table - default is true
@@ -31,49 +31,44 @@ class Users extends Model {
         role: { type: 'varchar(25)', nullable: false, default: 'user' },
         active: { type: 'bool', nullable: false, default: true },
       },
-    };
-    super(db, pgp, schema);
-
-    this.createColumnSet();
+    });
   }
 }
 
 describe('DB', () => {
-  describe('createTableI', () => {
-    beforeEach(() => {
-      // Reset static properties of DB class before each test
-      DB.db = undefined;
-      DB.pgp = undefined;
-    });
+  beforeEach(() => {
+    // Reset static properties of DB class before each test
+    DB.db = undefined;
+    DB.pgp = undefined;
+  });
 
-    test('should initialize database with valid connection and repositories', () => {
-      // Mock required dependencies
-      const repositories = {
-        users: Users,
-      };
-      // Call the init method
-      const db = DB.init(connection, repositories);
+  test('should initialize database with valid connection and repositories', () => {
+    // Mock required dependencies
+    const repositories = {
+      users: Users,
+    };
+    // Call the init method
+    const db = DB.init(connection, repositories);
 
-      // Assertions
-      expect(db).toBeDefined();
-      expect(DB.db).toBeDefined();
-      expect(DB.pgp).toBeDefined();
-      expect(db.users).toBeDefined();
-    });
+    // Assertions
+    expect(db).toBeDefined();
+    expect(DB.db).toBeDefined();
+    expect(DB.pgp).toBeDefined();
+    expect(db.users).toBeDefined();
+  });
 
-    test('should throw ConnectionParameterError if connection is undefined', () => {
-      // Call the init method with undefined connection
-      expect(() => {
-        DB.init(undefined, {});
-      }).toThrow(ConnectionParameterError);
-    });
+  test('should throw ConnectionParameterError if connection is undefined', () => {
+    // Call the init method with undefined connection
+    expect(() => {
+      DB.init(undefined, {});
+    }).toThrow(ConnectionParameterError);
+  });
 
-    test('should throw RepositoriesParameterError if repositories is not a plain object', () => {
-      // Call the init method with invalid repositories
-      expect(() => {
-        DB.init(connection, []);
-      }).toThrow(RepositoriesParameterError);
-    });
+  test('should throw RepositoriesParameterError if repositories is not a plain object', () => {
+    // Call the init method with invalid repositories
+    expect(() => {
+      DB.init(connection, []);
+    }).toThrow(RepositoriesParameterError);
   });
 
   // Does not reinitialize database if already initialized

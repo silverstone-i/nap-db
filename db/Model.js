@@ -13,33 +13,33 @@
 const { DBError } = require('./errors');
 const SelectQueryBuilder = require('./SelectQueryBuilder');
 
-class Model {
+class Model extends SelectQueryBuilder {
   constructor(db, pgp, schema) {
-      if (!db || !pgp) {
-        const message = !db
-          ? 'Invalid database.'
-          : 'Invalid pg-promise instance.';
+    super();
+    if (!db || !pgp) {
+      const message = !db
+        ? 'Invalid database.'
+        : 'Invalid pg-promise instance.';
 
-        throw new DBError(message);
-      }
+      throw new DBError(message);
+    }
 
-      if (!schema || !schema.tableName || !schema.columns) {
-        const message = !schema
-          ? 'Invalid schema.'
-          : !schema.tableName
-          ? 'Table name must be defined.'
-          : 'Schema requires at least one columns.';
+    if (!schema || !schema.tableName || !schema.columns) {
+      const message = !schema
+        ? 'Invalid schema.'
+        : !schema.tableName
+        ? 'Table name must be defined.'
+        : 'Schema requires at least one columns.';
 
-        throw new DBError(message);
-      }
+      throw new DBError(message);
+    }
 
-      this.db = db;
-      this.pgp = pgp;
-      if (!schema.dbSchema) schema.dbSchema = 'public';
-      if (!schema.timeStamps) schema.timeStamps = true;
-      this.schema = JSON.parse(JSON.stringify(schema));
-      this.cs = this.createColumnSet();
-      this.qb = new SelectQueryBuilder();
+    this.db = db;
+    this.pgp = pgp;
+    if (!schema.dbSchema) schema.dbSchema = 'public';
+    if (!schema.timeStamps) schema.timeStamps = true;
+    this.schema = JSON.parse(JSON.stringify(schema));
+    this.cs = this.createColumnSet();
   }
 
   // ************************************Getters and Setters************************************
@@ -199,10 +199,10 @@ class Model {
   //    Fetches all records from the database table
   async findAll(options) {
     try {
-      this.qb.reset();
+      this.reset();
       options.table = this.schema.tableName;
-      this.qb.Options = options;
-      const { query, values } = this.qb.build();
+      this.Options = options;
+      const { query, values } = this.buildQuery();
       return await this.db.manyOrNone(query, values);
     } catch (error) {
       throw new DBError(error.message);
@@ -235,10 +235,10 @@ class Model {
    */
   async findAndCountAll(options) {
     try {
-      this.qb.reset();
+      this.reset();
       options.table = this.schema.tableName;
-      this.qb.Options = options;
-      const { query, values } = this.qb.build();
+      this.Options = options;
+      const { query, values } = this.buildQuery();
       const totalCountQuery = this.#addTotalCountToQuery(query);
       return await this.db.manyOrNone(totalCountQuery, values);
     } catch (error) {
@@ -263,10 +263,10 @@ class Model {
 
   async findOne(options) {
     try {
-      this.qb.reset();
+      this.reset();
       options.table = this.schema.tableName;
-      this.qb.Options = options;
-      const { query, values } = this.qb.build();
+      this.Options = options;
+      const { query, values } = this.buildQuery();
       return await this.db.oneOrNone(query, values);
     } catch (error) {
       throw new DBError(error.message);
@@ -350,7 +350,7 @@ class Model {
       options.table = this.schema.tableName;
       this.qb.Options = options;
       const { query, values } = this.qb.buildQuery();
-      
+
       return await this.db.oneOrNone(query, values);
     } catch (error) {
       // console.log('Error:', error);
