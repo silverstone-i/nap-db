@@ -59,8 +59,8 @@ class Model extends SelectQueryBuilder {
           const hasDefault =
             this.schema.columns[column].hasOwnProperty('default');
           if (
-            this.schema.columns[column].type === 'serial' ||
-            (this.schema.columns[column].type === 'uuid' &&
+            (this.schema.columns[column].type === 'serial' ||
+            this.schema.columns[column].type === 'uuid' &&
               isPrimaryKey &&
               hasDefault)
           )
@@ -209,7 +209,7 @@ class Model extends SelectQueryBuilder {
     }
   }
 
-  #addTotalCountToQuery(query) {
+  _addTotalCountToQuery(query) {
     const totalCountString = 'COUNT(*) OVER() AS total_count';
     if (query.toUpperCase().includes(totalCountString.toUpperCase())) {
       // If 'COUNT(*) OVER() AS total_count' already exists, return the original query
@@ -222,10 +222,10 @@ class Model extends SelectQueryBuilder {
       const beforeFrom = query.substring(0, fromIndex);
       const afterFrom = query.substring(fromIndex);
       return `${beforeFrom.trim()}, ${totalCountString} ${afterFrom}`;
+    } else {
+      // If FROM clause not found, append the total count string to the end of the query
+      return `${query.trim()}, ${totalCountString}`;
     }
-
-    // If 'FROM' not found, return the original query
-    return query;
   }
 
   /**
@@ -239,7 +239,12 @@ class Model extends SelectQueryBuilder {
       options.table = this.schema.tableName;
       this.Options = options;
       const { query, values } = this.buildQuery();
-      const totalCountQuery = this.#addTotalCountToQuery(query);
+
+      if (!query.includes(' FROM ')) {
+        throw new Error('FROM clause not found in query.');
+      }
+
+      const totalCountQuery = this._addTotalCountToQuery(query);
       return await this.db.manyOrNone(totalCountQuery, values);
     } catch (error) {
       throw new DBError(error.message);
@@ -247,14 +252,29 @@ class Model extends SelectQueryBuilder {
   }
 
   //    Finds a record by its primary key
-  findByPK(pkValue) {
+  findByPK(pkValue, options = {}) {
     try {
-      return this.db.oneOrNone(
-        `SELECT * FROM ${this.schema.tableName} WHERE ${this.schema.primaryKey} = $1;`,
-        pkValue
-      );
+      if (pkValue === undefined || pkValue === null) {
+        throw new Error('Primary key is required.');
+      }
+
+      const { includeTimestamps = false } = options;
+
+      const timestampFields = [
+        'created_at',
+        'created_by',
+        'updated_at',
+        'updated_by',
+      ];
+      const columns = includeTimestamps
+        ? '*'
+        : Object.keys(this.schema.columns)
+            .filter((column) => !timestampFields.includes(column))
+            .join(', ');
+
+      const query = `SELECT ${columns} FROM ${this.schema.tableName} WHERE ${this.schema.primaryKey} = $1;`;
+      return this.db.oneOrNone(query, pkValue);
     } catch (error) {
-      // console.log('Error:', error);
       throw new DBError(error.message);
     }
   }
@@ -346,10 +366,10 @@ class Model extends SelectQueryBuilder {
 
   async aggregate(options) {
     try {
-      this.qb.reset();
+      this.reset();
       options.table = this.schema.tableName;
-      this.qb.Options = options;
-      const { query, values } = this.qb.buildQuery();
+      this.Options = options;
+      const { query, values } = this.buildQuery();
 
       return await this.db.oneOrNone(query, values);
     } catch (error) {
@@ -369,7 +389,7 @@ class Model extends SelectQueryBuilder {
 
   //    Finds the minimum value for a given field
   async min(options) {
-    return await this.aggregate(dto);
+    return await this.aggregate(options);
   }
 
   //    Calculates the sum of a given field

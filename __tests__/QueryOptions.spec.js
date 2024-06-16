@@ -42,6 +42,7 @@ describe('QueryOptions', () => {
         aggregates: [],
         groupBy: '',
         values: [],
+        includeTimestamps: false,
       });
     });
   });
@@ -77,6 +78,7 @@ describe('QueryOptions', () => {
         aggregates: [],
         groupBy: '',
         values: [],
+        includeTimestamps: false,
       });
     });
 
@@ -179,7 +181,7 @@ describe('QueryOptions', () => {
         expect(() => {
           qo.Options = { conditions: 'invalid condition' };
         }).toThrow(DBError);
-      } );
+      });
 
       it('should throw an error if orderBy is not a string', () => {
         expect(() => {
@@ -191,7 +193,7 @@ describe('QueryOptions', () => {
         expect(() => {
           qo.Options = { limit: 'invalid limit' };
         }).toThrow(DBError);
-      } );
+      });
 
       // it('should throw an error if offset is not a number', () => {
       //   expect(() => {
@@ -203,26 +205,31 @@ describe('QueryOptions', () => {
         expect(() => {
           qo.Options = { joins: 'invalid join' };
         }).toThrow(DBError);
-      } );
+      });
 
-      it('should throw an error if aggregates is not an array', () => { 
+      it('should throw an error if aggregates is not an array', () => {
         expect(() => {
           qo.Options = { aggregates: 'invalid aggregate' };
         }).toThrow(DBError);
-      } );
+      });
 
       it('should throw an error if groupBy is not a string', () => {
         expect(() => {
           qo.Options = { groupBy: 123 };
         }).toThrow(DBError);
-      } );
+      });
 
       it('should throw an error if value is null', () => {
         jest.spyOn(qo, 'addValue');
         qo.Options = { value: null };
         expect(qo.addValue).not.toHaveBeenCalled();
         jest.clearAllMocks();
-      } );
+      });
+    });
+
+    it('should set includeTimestamps to true', () => {
+      qo.Options = { includeTimestamps: true };
+      expect(qo.includeTimestamps).toBe(true);
     });
   });
 
@@ -274,6 +281,7 @@ describe('QueryOptions', () => {
         aggregates: [],
         groupBy: '',
         values: [],
+        includeTimestamps: false,
       });
     });
   });

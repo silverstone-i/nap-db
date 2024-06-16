@@ -29,6 +29,7 @@ class QueryOptions {
       aggregates: this.aggregates,
       groupBy: this.groupBy,
       values: this.values,
+      includeTimestamps: this.includeTimestamps,
     };
 
     return options;
@@ -62,6 +63,7 @@ class QueryOptions {
         aggregates,
         groupBy,
         values,
+        includeTimestamps,
       } = options;
       
       if (table) this.setTable(table);
@@ -81,6 +83,7 @@ class QueryOptions {
         );
       if (groupBy) this.setGroupBy(groupBy);
       if (values) this.addValue(values);
+      if (includeTimestamps) this.includeTimestamps = includeTimestamps;
 
       return this;
     } catch (error) {
@@ -103,8 +106,8 @@ class QueryOptions {
     'MEDIAN',
     'AVG',
     'STRING_AGG',
-    'FIRSTVALUE',
-    'LASTVALUE',
+    'FIRST_VALUE',
+    'LAST_VALUE',
   ]);
 
   /**
@@ -131,6 +134,7 @@ class QueryOptions {
     this.aggregates = []; // Array to store aggregate functions
     this.groupBy = ''; // The GROUP BY clause
     this.values = []; // Array to store parameterized values for prepared statements
+    this.includeTimestamps = false; // Flag to include timestamps in the query
   }
 
   /**
@@ -280,7 +284,7 @@ class QueryOptions {
    * @param {string} alias - The alias for the aggregated value.
    * @returns {SelectQueryBuilder} - The SelectQueryBuilder instance for method chaining.
    */
-  addAggregate(func, field, alias) {
+  addAggregate(func, field, alias) {    
     try {
       if (
         !func ||
