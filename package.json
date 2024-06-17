@@ -1,11 +1,11 @@
 {
   "name": "nap-db",
-  "version": "1.0.3",
+  "version": "1.0.4-beta.0",
   "description": "Map db tables to javascript class",
   "main": "index.js",
   "scripts": {
-    "docs": "jsdoc -c jsdoc.json README.md",
-    "test": "jest --coverage --verbose",
+    "docs": "jsdoc -c jsdoc.json README.md && cp LICENSE docs/",
+    "tests": "jest --coverage --verbose",
     "start": "nodemon --delay 5 ./server/app.js"
   },
   "author": "Ian Silverstone",
@@ -17,6 +17,8 @@
     "@types/jest": "^29.5.12",
     "body-parser": "^1.20.2",
     "chai": "^5.1.0",
+    "clean-jsdoc-theme": "^4.3.0",
+    "core-js": "^3.37.1",
     "docdash": "^2.0.2",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",

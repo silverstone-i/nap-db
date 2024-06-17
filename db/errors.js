@@ -1,10 +1,22 @@
+'./db/errors.js';
+
+/*
+ *
+ * Copyright © 2024-present, Ian Silverstone
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
 'use strict';
 
 /**
  * Custom errors for the db module
  * @class DBError
  * @extends Error
- * 
+ *
  * @constructor
  * @param {string} message - The error message
  * @param {Error} [cause] - The cause of the error
@@ -15,10 +27,10 @@ class DBError extends Error {
     this.name = 'DBError';
     this.cause = cause;
 
-    // // Ensure the correct prototype chain
+    // Ensure the correct prototype chain
     // Object.setPrototypeOf(this, DBError.prototype);
 
-    // // Capture the stack trace
+    // Capture the stack trace
     // if (Error.captureStackTrace) {
     //   console.log('Capturing stack trace');
     //   Error.captureStackTrace(this, DBError);
@@ -27,7 +39,7 @@ class DBError extends Error {
     // }
   }
 }
- 
+
 /**
  * Error thrown when connection parameter is missing
  * @class ConnectionParameterError
@@ -40,11 +52,6 @@ class ConnectionParameterError extends DBError {
   }
 }
 
-/**
- * Error thrown when repositories parameter is missing or invalid
- * @class RepositoriesParameterError
- * @extends DBError
- */
 class RepositoriesParameterError extends DBError {
   constructor() {
     super('Repositories parameter is required and must be a plain object');

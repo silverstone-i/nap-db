@@ -31,7 +31,7 @@ const db = DB.init(connection, repositories);
 //   });
 
 try {
-  db.users.init();
+  db.users.createTable();
   console.log('Table created');
 } catch (error) {
   console.error('Error creating table:', error.message);
@@ -48,9 +48,9 @@ app.post('/insert', async (req, res) => {
 
   try {
     const DTO = req.body;
-    await db.users.insert(DTO);
+    const result = await db.users.insertReturning(DTO);
     console.log('User created:');
-    res.json('user created');
+    res.json(result);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: error.message });

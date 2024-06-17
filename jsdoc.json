@@ -4,8 +4,8 @@
     "dictionaries": ["jsdoc", "closure"]
   },
   "source": {
-    "include": ["db"],
-    "exclude": ["node_modules", "__test__", "coverage"],
+    "include": ["db", "./LICENSE"],
+    "exclude": ["node_modules", "__tests__", "coverage", "docs", "examples", "test", "tests", "tmp", "vendor"],
     "includePattern": ".+\\.js(doc)?$",
     "excludePattern": "(^|\\/|\\\\)_"
   },
@@ -18,26 +18,19 @@
     "monospaceLinks": false
   },
   "opts": {
+    "encoding": "utf8",
+    "readme": "./README.md",
+    "destination": "docs/",
     "recurse": true,
-    "destination": "./docs",
-    "favicon": "https://raw.githubusercontent.com/silverstone-i/nap-db/dev/assets/favicon.ico",
-    "template": "./docdash-mod"
-  },
-  "docdash": {
-    "static": true,
-    "sort": true,
-    "search": true,
-    "collapse": true,
-    "typedefs": true,
-    "removeQuotes": "none",
-    "scripts": [],
-    "menu": {
-      "Github repo": {
-        "href": "https://github.com/silverstone-i/nap-db.git",
-        "target": "_blank",
-        "class": "menu-item",
-        "id": "repository"
-      }
+    "template": "./node_modules/clean-jsdoc-theme",
+    "theme_opts": {
+      "default_theme": "fallback-dark",
+      "homepageTitle": "Nap Docs",
+      "favicon": "https://raw.githubusercontent.com/silverstone-i/nap-db/dev/assets/favicon.ico"
     }
+  },
+  "markdown": {
+    "hardwrap": false,
+    "idInHeadings": true
   }
 }

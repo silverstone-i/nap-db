@@ -1,75 +1,147 @@
-// .db/Model.js
-'use strict';
+'./db/Model.js';
+
+/*
+ *
+ * Copyright © 2024-present, Ian Silverstone
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 
 const { DBError } = require('./errors');
+const SelectQueryBuilder = require('./SelectQueryBuilder');
 
-/**
- * Model class for creating, reading, updating, and deleting records in a database table.
- * @class Model - Base class for managing CRUD and other database operations
- * @constructor
- */
-class Model {
-  // static csCounter = 0;
-  /**
-   * Creates an instance of Model.
-   * @param {Object} db - The database connection object
-   * @param {Object} pgp - The pg-promise instance
-   * @param {TableSchema} schema - The schema object
-   * @throws {DBError} - If the db, pgp, or schema parameters are invalid
-   * @memberof Model
-   * @constructor
-   */
+class Model extends SelectQueryBuilder {
   constructor(db, pgp, schema) {
-    try {
-      if (!db || !pgp) {
-        const message = !db
-          ? 'Invalid database.'
-          : 'Invalid pg-promise instance.';
+    super();
+    if (!db || !pgp) {
+      const message = !db
+        ? 'Invalid database.'
+        : 'Invalid pg-promise instance.';
 
-        throw new DBError(message);
-      }
-
-      if (!schema || !schema.tableName || !schema.columns) {
-        const message = !schema
-          ? 'Invalid schema.'
-          : !schema.tableName
-          ? 'Table name must be defined.'
-          : 'Schema requires at least one columns.';
-
-        throw new DBError(message);
-      }
-
-      this.db = db;
-      this.pgp = pgp;
-      if (!schema.dbSchema) schema.dbSchema = 'public';
-      if (!schema.timeStamps) schema.timeStamps = true;
-      this.schema = JSON.parse(JSON.stringify(schema));
-      // this.csCount = 0;
-      this.cs = this.createColumnSet();
-      // console.log('Model initialized', this.cs !== null);
-    } catch (error) {
-      throw new DBError(error.message);
+      throw new DBError(message);
     }
+
+    if (!schema || !schema.tableName || !schema.columns) {
+      const message = !schema
+        ? 'Invalid schema.'
+        : !schema.tableName
+        ? 'Table name must be defined.'
+        : 'Schema requires at least one columns.';
+
+      throw new DBError(message);
+    }
+
+    this.db = db;
+    this.pgp = pgp;
+    if (!schema.dbSchema) schema.dbSchema = 'public';
+    if (!schema.timeStamps) schema.timeStamps = true;
+    this.schema = JSON.parse(JSON.stringify(schema));
+    this.cs = this.createColumnSet();
   }
 
-  /**
-   * Returns the column set object for the model
-   * @readonly
-   * @memberof Model
-   * @returns {Object} - The column set object
-   */
+  // ************************************Getters and Setters************************************
+
   get columnset() {
     return this.cs;
   }
+  //  Returns the column set object for the model
 
-  /**
-   * Creates the database table based on the schema provided
-   * @async
-   * @memberof Model
-   * @returns {Promise} - The result of the database query
-   * @throws {DBError} - If the table creation fails
-   */
-  async init() {
+  // ***********************************Private Helper Functions***********************************
+  createColumnSet() {
+    if (!this.cs) {
+      // console.log('Creating column set', ++Model.csCounter);
+
+      const columns = Object.keys(this.schema.columns)
+        .map((column) => {
+          const isPrimaryKey = this.schema.columns[column].primaryKey || false;
+          const hasDefault =
+            this.schema.columns[column].hasOwnProperty('default');
+          if (
+            this.schema.columns[column].type === 'serial' ||
+            (this.schema.columns[column].type === 'uuid' &&
+              isPrimaryKey &&
+              hasDefault)
+          )
+            return null; // ignore serial or uuid primary key columns
+
+          let columnObject = {
+            name: column,
+            prop: column,
+          };
+          isPrimaryKey
+            ? (columnObject.cnd = true)
+            : (columnObject.skip = (c) => !c.exists);
+          hasDefault
+            ? (columnObject.def = this.schema.columns[column].default)
+            : null;
+          return columnObject;
+        })
+        .filter((column) => column !== null); // Filter out null entries (serial columns);
+
+      const cs = {};
+      cs[this.schema.tableName] = new this.pgp.helpers.ColumnSet(columns, {
+        table: {
+          table: this.schema.tableName,
+          schema: this.schema.dbSchema,
+        },
+      });
+      cs.insert = cs[this.schema.tableName].extend(['created_by']);
+      cs.update = cs[this.schema.tableName].extend([
+        {
+          name: `updated_at`,
+          mod: '^',
+          def: 'CURRENT_TIMESTAMP',
+        },
+        `updated_by`,
+      ]);
+
+      return cs;
+    }
+
+    return this.cs;
+  }
+
+  #generateColumnDefinition(name, config) {
+    const parts = [`${name} ${config.type}`];
+
+    if (config.primaryKey) parts.push('PRIMARY KEY');
+    if (!config.nullable) parts.push('NOT NULL');
+    if (config.default !== undefined) parts.push(`DEFAULT ${config.default}`);
+    if (config.generated)
+      parts.push(`GENERATED ALWAYS AS (${config.generated}) STORED`);
+    if (config.unique) parts.push('UNIQUE');
+    if (config.references) parts.push(`REFERENCES ${config.references}`);
+    if (config.onDelete) parts.push(`ON DELETE ${config.onDelete}`);
+    if (config.onUpdate) parts.push(`ON UPDATE ${config.onUpdate}`);
+    if (config.check) parts.push(`CHECK (${config.check})`);
+    if (config.collate) parts.push(`COLLATE ${config.collate}`);
+    if (config.comment) parts.push(`COMMENT '${config.comment}'`);
+    if (config.constraint) parts.push(`CONSTRAINT ${config.constraint}`);
+    if (config.index) parts.push(`INDEX ${config.index}`);
+
+    return parts.join(' ');
+  }
+
+  #generateConstraints(constraints) {
+    return Object.entries(constraints)
+      .map(([name, config]) => `CONSTRAINT ${name} ${config}`)
+      .join(',\n');
+  }
+
+  #generateIndexes(tableName, indexes) {
+    return Object.entries(indexes)
+      .map(([indexName, { unique, config }]) => {
+        const uniqueClause = unique ? 'UNIQUE ' : '';
+        return `CREATE ${uniqueClause}INDEX ${indexName} ON ${tableName} (${config});`;
+      })
+      .join('\n');
+  }
+
+  // **************************CREATE TABLE*******************************************
+  async createTable() {
     try {
       return await this.db.none(this.createTableQuery());
     } catch (err) {
@@ -77,93 +149,32 @@ class Model {
     }
   }
 
-  /**
-   * Creates the SQL query to create the table based on the schema provided
-   * @memberof Model
-   * @returns {string} - The SQL query to create the table
-   * @throws {DBError} - If the table creation query fails
-   */
-  createTableQuery() {
-    let columns = Object.entries(this.schema.columns)
-      .map(([name, config]) => {
-        let column = `${name} ${config.type}`;
-        if (config.primaryKey) {
-          column += ' PRIMARY KEY';
-        }
-        if (!config.nullable) {
-          column += ' NOT NULL';
-        }
-        if (config.default) {
-          column += ` DEFAULT ${config.default}`;
-        }
-        return column;
-      })
+  createTableQuery(schema = this.schema) {
+    const columns = Object.entries(schema.columns)
+      .map(([name, config]) => this.#generateColumnDefinition(name, config))
       .join(',\n');
 
-    if (this.schema.timeStamps) {
-      columns += `,\ncreated_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,\ncreated_by varchar(50) NOT NULL,\nupdated_at timestamptz NULL DEFAULT NULL,\nupdated_by varchar(50) NULL DEFAULT NULL`;
-    }
-
-    const foreignKeys = this.schema.foreignKeys
-      ? Object.entries(this.schema.foreignKeys)
-          .map(([name, config]) => {
-            return `FOREIGN KEY (${name}) REFERENCES ${
-              config.referenceTable
-            }(${config.referenceColumns.join(',')}) ON DELETE ${
-              config.onDelete
-            } ON UPDATE ${config.onUpdate}`;
-          })
-          .join(',\n')
+    const timeStampColumns = schema.timeStamps
+      ? `, created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP, 
+       created_by VARCHAR(50) NOT NULL, 
+       updated_at TIMESTAMPTZ DEFAULT NULL, 
+       updated_by VARCHAR(50) DEFAULT NULL`
       : '';
 
-    const uniqueConstraints = this.schema.uniqueConstraints
-      ? Object.entries(this.schema.uniqueConstraints)
-          .map(([name, config]) => {
-            const columns = config.columns.join(',');
-            return `CONSTRAINT ${name} UNIQUE (${columns})`;
-          })
-          .join(',\n')
+    const constraints = schema.constraints
+      ? this.#generateConstraints(schema.constraints)
+      : '';
+    const indexes = schema.indexes
+      ? this.#generateIndexes(schema.tableName, schema.indexes)
       : '';
 
-    return `CREATE TABLE IF NOT EXISTS ${this.schema.tableName} (\n${columns}${
-      foreignKeys ? ',\n' + foreignKeys : ''
-    }${uniqueConstraints ? ',\n' + uniqueConstraints : ''}\n);`;
+    return `CREATE TABLE IF NOT EXISTS ${schema.tableName} (
+    ${columns}${timeStampColumns}${constraints ? ',\n' + constraints : ''}
+  );\n${indexes}`;
   }
 
-  /**
-   * Drops the database table
-   * @async
-   * @memberof Model
-   * @returns {Promise} - The result of the database query
-   * @throws {DBError} - If the table drop fails
-   */
-  async drop() {
-    try {
-      return await this.db.none(`DROP TABLE ${this.schema.tableName};`);
-    } catch (error) {
-      throw new DBError(error.message);
-    }
-  }
+  // **************************CRUD Operations*******************************************
 
-  /**
-   * Inserts a record into the database table
-   * @async
-   * @param {Object} dto - The data transfer object
-   * @memberof Model
-   * @returns {Promise} - Status of the insert operation (200)
-   * @throws {DBError} - If the insert operation fails
-   * 
-   * @example
-   * ...
-   * // Typical DTO - all required fields must be provided or the insert will fail
-   * const dto = {
-   *  name: 'John Doe',
-   *  email: 'john@description.com
-   *  age: 30,
-   *  created_by: 'admin'
-   * };
-   * ...
-   */
   async insert(dto) {
     try {
       const qInsert = this.pgp.helpers.insert(dto, this.cs.insert);
@@ -173,81 +184,134 @@ class Model {
     }
   }
 
-  /**
-   * Selects records from the database table
-   * @async
-   * @param {Object} dto - The data transfer object
-   * @memberof Model
-   * @returns {Promise} - The records selected
-   * @throws {DBError} - If the select operation fails
-   * 
-   * @example
-   * 
-   * Select all records from the table
-   * ...
-   * const dto = {
-   *  id: 1,
-   *  _condition: 'WHERE id = ${id}'
-   * };
-   * ...
-   * 
-   * Select specific columns from the table
-   * ...
-   * const dto = {
-   *  id: 1,
-   *  name: '',
-   *  email: '',
-   *  _condition: 'WHERE id = ${id}'
-   * };
-   * ...
-   */
-  async select(dto) {
+  async insertReturning(dto) {
     try {
-      // Build the WHERE clause
-      let condition = '';
-      if (dto._condition) {
-        condition = this.pgp.as.format(dto._condition, dto);
-        delete dto._condition;
-        dto = Object.fromEntries(
-          Object.entries(dto).filter(([key, value]) => value === '')
-        ); // Convert object to array and back to object to remove condition values
+      const returning = dto.returning || 'RETURNING *';
+      delete dto.returning;
+      const qInsert =
+        this.pgp.helpers.insert(dto, this.cs.insert) + ' ' + returning;
+
+      const result = await this.db.one(qInsert, dto);
+      return result;
+    } catch (error) {
+      // console.log('Error:', error);
+
+      throw new DBError(error.message);
+    }
+  }
+  async findAll(options) {
+    try {
+      this.reset();
+      options.table = this.schema.tableName;
+      this.Options = options;
+      const { query, values } = this.buildQuery();
+      return await this.db.manyOrNone(query, values);
+    } catch (error) {
+      throw new DBError(error.message);
+    }
+  }
+
+  _addTotalCountToQuery(query) {
+    const totalCountString = 'COUNT(*) OVER() AS total_count';
+    if (query.toUpperCase().includes(totalCountString.toUpperCase())) {
+      // If 'COUNT(*) OVER() AS total_count' already exists, return the original query
+      return query;
+    }
+
+    const fromIndex = query.toUpperCase().indexOf('FROM');
+    if (fromIndex !== -1) {
+      // Insert the total count string before the FROM clause
+      const beforeFrom = query.substring(0, fromIndex);
+      const afterFrom = query.substring(fromIndex);
+      return `${beforeFrom.trim()}, ${totalCountString} ${afterFrom}`;
+    } else {
+      // If FROM clause not found, append the total count string to the end of the query
+      return `${query.trim()}, ${totalCountString}`;
+    }
+  }
+
+  /**
+   * Fetches all records from the database table and returns the total count of records
+   * @param {Object} options - {@link QueryOptions}
+   * @returns {Promise} - Returns a promise that resolves with the records and total count
+   * @throws {DBError} - Failed to fetch records
+   *
+   * @example
+   *
+   * qo.setTable('table_name')
+   *   .setFields('field1, field2')
+   *   .addCondition({ field: 'field1', operator: '=', value: 'value1' })
+   *   .setOrderBy('field1 ASC')
+   *   .setLimit(10)
+   *   .setOffset(5)
+   *   .addJoin('INNER', 'table2', 'table1.id = table2.id')
+   *   .addAggregate('COUNT', 'name', 'count')
+   *   .setGroupBy('field1');
+   *
+   */
+  async findAndCountAll(options) {
+    try {
+      this.reset();
+      options.table = this.schema.tableName;
+      this.Options = options;
+      const { query, values } = this.buildQuery();
+
+      if (!query.includes(' FROM ')) {
+        throw new Error('FROM clause not found in query.');
       }
 
-      // Build the SELECT query
-      const qSelect =
-        Object.keys(dto).length === 0 && dto.constructor === Object
-          ? `SELECT * FROM ${this.schema.tableName} ${condition};`
-          : this.pgp.as.format(
-              `SELECT $1:name FROM ${this.schema.tableName} ${condition};`,
-              [dto]
-            );
+      const totalCountQuery = this._addTotalCountToQuery(query);
+      return await this.db.manyOrNone(totalCountQuery, values);
+    } catch (error) {
+      throw new DBError(error.message);
+    }
+  }
 
-      return await this.db.any(qSelect);
+  findByPK(pkValue, options = {}) {
+    try {
+      if (pkValue === undefined || pkValue === null) {
+        throw new Error('Primary key is required.');
+      }
+
+      const { includeTimestamps = false } = options;
+
+      const timestampFields = [
+        'created_at',
+        'created_by',
+        'updated_at',
+        'updated_by',
+      ];
+      const columns = includeTimestamps
+        ? '*'
+        : Object.keys(this.schema.columns)
+            .filter((column) => !timestampFields.includes(column))
+            .join(', ');
+
+      const query = `SELECT ${columns} FROM ${this.schema.tableName} WHERE ${this.schema.primaryKey} = $1;`;
+      return this.db.oneOrNone(query, pkValue);
     } catch (error) {
       throw new DBError(error.message);
     }
   }
 
   /**
-   * Updates records in the database table
-   * @async
-   * @param {Object} dto - The data transfer object
-   * @memberof Model
-   * @returns {Promise} - The result of the update operation
-   * @throws {DBError} - If the update operation fails
-   * 
-   * @example
-   * ...
-   * // Typical DTO - only the fields to be updated are required along with the condition  fields
-   * const dto = {
-   *  id: 1,
-   *  name: 'John Doe',
-   *  email: 'jane@description.com',
-   *  updated_by: 'admin',
-   *  _condition: 'WHERE id = ${id}'
-   * };
-   * ...
+   * Finds a single record in the database based on the provided options.
+   * @param {Object} options - The options for the query.
+   * @returns {Promise<Object|null>} - A promise that resolves to the found record or null if not found.
+   * @throws {DBError} - If an error occurs during the database operation.
    */
+  async findOne(options) {
+    try {
+      this.reset();
+      options.table = this.schema.tableName;
+      this.Options = options;
+      const { query, values } = this.buildQuery();
+      return await this.db.oneOrNone(query, values);
+    } catch (error) {
+      throw new DBError(error.message);
+    }
+  }
+
   async update(dto) {
     try {
       let condition = '';
@@ -273,31 +337,6 @@ class Model {
       throw new DBError(error.message);
     }
   }
-
-  /**
-   * Deletes records from the database table
-   * @async
-   * @param {Object} dto - The data transfer object
-   * @memberof Model
-   * @returns {Promise} - The result of the delete operation
-   * @throws {DBError} - If the delete operation fails
-   * 
-   * @example
-   * 
-   * Delete all records from the table
-   * ...
-   * const dto = { );
-   * ...
-   * 
-   *  Delete specific records from the table
-   * ...
-   * // Typical DTO - only the condition fields are required
-   * const dto = {
-   *  id: 1,
-   *  _condition: 'WHERE id = ${id}'
-   * };
-   * ...
-   */
   async delete(dto) {
     try {
       let condition = '';
@@ -324,13 +363,15 @@ class Model {
     }
   }
 
-  /**
-   * Truncates the database table
-   * @async
-   * @memberof Model
-   * @returns {Promise} - The result of the truncate operation
-   * @throws {DBError} - If the truncate operation fails
-   */
+  // **************************Other Query Operations*******************************************
+  async drop() {
+    try {
+      return await this.db.none(`DROP TABLE ${this.schema.tableName};`);
+    } catch (error) {
+      throw new DBError(error.message);
+    }
+  }
+
   async truncate() {
     try {
       return await this.db.none(`TRUNCATE TABLE ${this.schema.tableName};`);
@@ -338,103 +379,64 @@ class Model {
       throw new DBError(error.message);
     }
   }
+  // *******************************Aggregates********************************************
 
-  /**
-   * Counts the number of records in the database table
-   * @async
-   * @param {Object} dto - The data transfer object
-   * @memberof Model
-   * @returns {Promise} - The count of records in the table
-   * @throws {DBError} - If the count operation fails
-   * 
-   * @example
-   * 
-   * Count records per the provided condition
-   * ...
-   * // Typical DTO - only the condition fields are required
-   * const dto = {
-   * id: 1,
-   * _condition: 'WHERE id = ${id}'
-   * };
-   * ...
-   * 
-   * Count all records in the table
-   * ...
-   * const dto = { );
-   * 
-   */
-  async count(dto) {
+  async aggregate(options) {
     try {
-      if (!dto) {
-        dto = {};
-      }
+      this.reset();
+      options.table = this.schema.tableName;
+      this.Options = options;
+      const { query, values } = this.buildQuery();
 
-      let condition = '';
-      if (dto._condition) {
-        condition = this.pgp.as.format(dto._condition, dto);
-      }
-
-      const qCount =
-        `SELECT COUNT(*) FROM ${this.schema.tableName} ${condition};`.replace(
-          /\s*([.,;:])\s*|\s{2,}|\n/g,
-          '$1'
-        );
-
-      const count = await this.db.one(qCount, (a) => +a.count);
-
-      return count;
+      return await this.db.oneOrNone(query, values);
     } catch (error) {
+      // console.log('Error:', error);
       throw new DBError(error.message);
     }
   }
 
-  /**
-   * Creates the column set object for the model
-   * @memberof Model
-   * @returns {Object} - The column set object
-   * @throws {DBError} - If the column set creation fails
-   * @private
-   */
-  createColumnSet() {
-    if (!this.cs) {
-      // console.log('Creating column set', ++Model.csCounter);
+  async count(options) {
+    return await this.aggregate(options);
+  }
 
-      const columns = Object.keys(this.schema.columns)
-        .map((column) => {
-          const isPrimaryKey = this.schema.columns[column].primaryKey || false;
-          const defaultValue = this.schema.columns[column].default || null;
-          if (this.schema.columns[column].type === 'serial') return null; // ignore serial columns
+  async max(options) {
+    return await this.aggregate(options);
+  }
 
-          let columnObject = {
-            name: column,
-            prop: column,
-          };
-          isPrimaryKey
-            ? (columnObject.cnd = true)
-            : (columnObject.skip = (c) => !c.exists);
-          defaultValue ? (columnObject.def = defaultValue) : null;
-          return columnObject;
-        })
-        .filter((column) => column !== null); // Filter out null entries (serial columns);
+  async min(options) {
+    return await this.aggregate(options);
+  }
 
-      const cs = {};
-      cs[this.schema.tableName] = new this.pgp.helpers.ColumnSet(columns, {
-        table: { table: this.schema.tableName, schema: this.schema.dbSchema },
-      });
-      cs.insert = cs[this.schema.tableName].extend(['created_by']);
-      cs.update = cs[this.schema.tableName].extend([
-        {
-          name: `updated_at`,
-          mod: '^',
-          def: 'CURRENT_TIMESTAMP',
-        },
-        `updated_by`,
-      ]);
+  async sum(options) {
+    return await this.aggregate(options);
+  }
 
-      return cs;
-    }
+  async variance(options) {
+    return await this.aggregate(options);
+  }
 
-    return this.cs;
+  async stddev(options) {
+    return await this.aggregate(options);
+  }
+
+  async median(options) {
+    return await this.aggregate(options);
+  }
+
+  async average(options) {
+    return await this.aggregate(options);
+  }
+
+  async stringAgg(options) {
+    return await this.aggregate(options);
+  }
+  å;
+  async firstValue(options) {
+    return await this.aggregate(options);
+  }
+
+  async lastValue(options) {
+    return await this.aggregate(options);
   }
 }
 
