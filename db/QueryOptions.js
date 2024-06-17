@@ -1,5 +1,3 @@
-'./db/QueryOptions.js';
-
 /**
  *
  * Copyright © 2024-present, Ian Silverstone
@@ -12,11 +10,32 @@
 
 const { DBError } = require('./errors');
 
+/**
+ * QueryOptions class to manage and validate query parameters for database operations.
+ *
+ * @class QueryOptions
+ * @property {string} table - The table name for the query.
+ * @property {string|string[]} fields - The fields to select.
+ * @property {Array} conditions - Array to store query conditions.
+ * @property {string} orderBy - The ORDER BY clause.
+ * @property {number} limit - The LIMIT clause.
+ * @property {number} offset - The OFFSET clause.
+ * @property {Array} joins - Array to store JOIN clauses.
+ * @property {Array} aggregates - Array to store aggregate functions.
+ * @property {string} groupBy - The GROUP BY clause.
+ * @property {Array} values - Array to store parameterized values for prepared statements.
+ * @property {boolean} includeTimestamps - Flag to include timestamps in the query.
+ */
 class QueryOptions {
   constructor() {
     this.reset();
   }
 
+  /**
+   * Returns an object containing the query options.
+   * @returns {Object} - The query options object.
+   * @memberof QueryOptions
+   */
   get Options() {
     const options = {
       table: this.table,
@@ -40,6 +59,7 @@ class QueryOptions {
    * @param {Object} options - An object containing query parameters.
    * @returns {QueryOptions} - The QueryOptions instance with updated properties.
    * @throws {DBError} - If the options object is invalid.
+   * @memberof QueryOptions
    */
   set Options(options) {
     try {
@@ -65,7 +85,7 @@ class QueryOptions {
         values,
         includeTimestamps,
       } = options;
-      
+
       if (table) this.setTable(table);
       if (fields) this.setFields(fields);
       if (conditions && conditions.length > 0)
@@ -95,6 +115,7 @@ class QueryOptions {
    * Set of valid aggregate functions.
    * @type {Set<string>}
    * @static
+   * @memberof QueryOptions
    */
   static validAggregateFunctions = new Set([
     'COUNT',
@@ -115,6 +136,7 @@ class QueryOptions {
    * @param {string} func - The aggregate function name to validate.
    * @returns {boolean} True if the function name is valid, otherwise false.
    * @static
+   * @memberof QueryOptions
    */
   static isValidAggregateFunction(func) {
     // Convert the function name to uppercase for case insensitivity
@@ -123,6 +145,10 @@ class QueryOptions {
     return QueryOptions.validAggregateFunctions.has(upperCaseFunc);
   }
 
+  /**
+   * Resets the query options to their default values.
+   * @memberof QueryOptions
+   */
   reset() {
     this.table = ''; // The table name for the query
     this.fields = '*'; // The fields to select (default is all fields)
@@ -140,7 +166,9 @@ class QueryOptions {
   /**
    * Sets the table for the query.
    * @param {string} table - The name of the table.
-   * @returns {SelectQueryBuilder} - The SelectQueryBuilder instance for method chaining.
+   * @returns {QueryOptions} - The QueryOptions instance for method chaining.
+   * @throws {DBError} - If the table name is invalid.
+   * @memberof QueryOptions
    */
   setTable(table) {
     try {
@@ -159,7 +187,9 @@ class QueryOptions {
   /**
    * Sets the fields to select.
    * @param {string|string[]} fields - The fields to select.
-   * @returns {SelectQueryBuilder} - The SelectQueryBuilder instance for method chaining.
+   * @returns {QueryOptions} - The QueryOptions instance for method chaining.
+   * @throws {DBError} - If the field(s) are invalid.
+   * @memberof QueryOptions
    */
   setFields(fields) {
     try {
@@ -178,8 +208,30 @@ class QueryOptions {
   /**
    * Adds a condition to the query.
    * @param {object|object[]} condition - The condition(s) to add.
-   * @param {*} [value] - The value to compare against (for single condition).
-   * @returns {SelectQueryBuilder} - The SelectQueryBuilder instance for method chaining.
+   * @returns {QueryOptions} - The QueryOptions instance for method chaining.
+   * @throws {DBError} - If the condition(s) are invalid.
+   * @memberof QueryOptions
+   * @example
+   * // Single condition
+   * queryOptions.addCondition({ field: 'id', operator: '=', value: 1});
+   *
+   * @example
+   * // Nested conditions
+   *  qb.setTable('users')
+   *   .setFields(['age', 'gender', 'city'])
+   *  .addCondition({ field: 'age', operator: '>', value: 18 })
+   *    .addCondition({ field: 'gender', operator: '=', value: 'male' })
+   *     .addCondition([
+   *      { field: 'city', operator: '=', value: 'New York' },
+   *       {
+   *         conjunction: 'OR',
+   *         field: 'city',
+   *         operator: '=',
+   *         value: 'Los Angeles',
+   *       },
+   *     ]);
+   *
+   *    console.log(qb.buildQuery());  // { query: 'SELECT age, gender, city FROM users WHERE age > $1 AND gender = $2 AND (city = $3 OR city = $4)', values: [18, 'male', 'New York', 'Los Angeles'] }
    */
   addCondition(condition) {
     try {
@@ -201,7 +253,9 @@ class QueryOptions {
   /**
    * Sets the ORDER BY clause for the query.
    * @param {string} orderBy - The ORDER BY clause.
-   * @returns {SelectQueryBuilder} - The SelectQueryBuilder instance for method chaining.
+   * @returns {QueryOptions} - The QueryOptions instance for method chaining.
+   * @throws {DBError} - If the ORDER BY clause is invalid.
+   *  @memberof QueryOptions
    */
   setOrderBy(orderBy) {
     try {
@@ -218,7 +272,9 @@ class QueryOptions {
   /**
    * Sets the LIMIT clause for the query.
    * @param {number} limit - The LIMIT value.
-   * @returns {SelectQueryBuilder} - The SelectQueryBuilder instance for method chaining.
+   * @returns {QueryOptions} - The QueryOptions instance for method chaining.
+   * @throws {DBError} - If the LIMIT value is invalid.
+   * @memberof QueryOptions
    */
   setLimit(limit) {
     try {
@@ -241,7 +297,9 @@ class QueryOptions {
   /**
    * Sets the OFFSET clause for the query.
    * @param {number} offset - The OFFSET value.
-   * @returns {SelectQueryBuilder} - The SelectQueryBuilder instance for method chaining.
+   * @returns {QueryOptions} - The QueryOptions instance for method chaining.
+   * @throws {DBError} - If the OFFSET value is invalid.
+   * @memberof QueryOptions
    */
   setOffset(offset) {
     this.offset = offset;
@@ -253,7 +311,17 @@ class QueryOptions {
    * @param {string} type - The type of join (e.g., 'INNER', 'LEFT', 'RIGHT').
    * @param {string} table - The name of the table to join.
    * @param {string} condition - The join condition.
-   * @returns {SelectQueryBuilder} - The SelectQueryBuilder instance for method chaining.
+   * @returns {QueryOptions} - The QueryOptions instance for method chaining.
+   * @throws {DBError} - If the join parameters are invalid.
+   * @memberof QueryOptions
+   *
+   * @example
+   * qb.setTable('users')
+   *  .setFields(['name', 'email', 'city'])
+   * .addJoin('LEFT', 'addresses', 'users.id = addresses.user_id')
+   * .addCondition({ field: 'city', operator: '=', value: 'New York' });
+   *
+   * console.log(qb.buildQuery());  // { query: 'SELECT name, email, city FROM users LEFT JOIN addresses ON users.id = addresses.user_id WHERE city = $1', values: ['New York'] }
    */
   addJoin(type, table, condition) {
     try {
@@ -265,7 +333,12 @@ class QueryOptions {
         typeof table !== 'string' ||
         typeof condition !== 'string'
       ) {
-        const missing = !type || typeof type !== 'string' ? 'join type' : !table || typeof table !== 'string' ? 'join table' : 'join condition';
+        const missing =
+          !type || typeof type !== 'string'
+            ? 'join type'
+            : !table || typeof table !== 'string'
+            ? 'join table'
+            : 'join condition';
         throw new Error(`Invalid ${missing}.`);
       }
 
@@ -282,9 +355,18 @@ class QueryOptions {
    * @param {string} func - The aggregate function (e.g., 'COUNT', 'SUM', 'AVG').
    * @param {string} field - The field to which the function is applied.
    * @param {string} alias - The alias for the aggregated value.
-   * @returns {SelectQueryBuilder} - The SelectQueryBuilder instance for method chaining.
+   * @returns {QueryOptions} - The QueryOptions instance for method chaining.
+   * @throws {DBError} - If the aggregate parameters are invalid.
+   *  @memberof QueryOptions
+   *
+   * @example
+   * qb.setTable('users')
+   * .addAggregate('COUNT', 'id', 'total_users')
+   * .addAggregate('AVG', 'age', 'average_age');
+   *
+   * console.log(qb.buildQuery());  // { query: 'SELECT COUNT(id) AS total_users, AVG(age) AS average_age FROM users', values: [] }
    */
-  addAggregate(func, field, alias) {    
+  addAggregate(func, field, alias) {
     try {
       if (
         !func ||
@@ -316,7 +398,9 @@ class QueryOptions {
   /**
    * Sets the GROUP BY clause for the query.
    * @param {string} groupBy - The GROUP BY clause.
-   * @returns {SelectQueryBuilder} - The SelectQueryBuilder instance for method chaining.
+   * @returns {QueryOptions} - The QueryOptions instance for method chaining.
+   * @throws {DBError} - If the GROUP BY clause is invalid.
+   * @memberof QueryOptions
    */
   setGroupBy(groupBy) {
     try {
@@ -331,6 +415,13 @@ class QueryOptions {
     }
   }
 
+  /**
+   * Adds a value to the list of parameterized values for prepared statements.
+   * @param {*} value - The value to add.
+   * @returns {QueryOptions} - The QueryOptions instance for method chaining.
+   * @throws {DBError} - If the value is invalid.
+   * @memberof QueryOptions
+   */
   addValue(value) {
     try {
       if (value === undefined || value === null) {

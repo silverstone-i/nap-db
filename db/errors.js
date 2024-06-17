@@ -15,10 +15,10 @@ class DBError extends Error {
     this.name = 'DBError';
     this.cause = cause;
 
-    // // Ensure the correct prototype chain
+    // Ensure the correct prototype chain
     // Object.setPrototypeOf(this, DBError.prototype);
 
-    // // Capture the stack trace
+    // Capture the stack trace
     // if (Error.captureStackTrace) {
     //   console.log('Capturing stack trace');
     //   Error.captureStackTrace(this, DBError);

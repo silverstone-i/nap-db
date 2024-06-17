@@ -13,16 +13,26 @@
 const QueryOptions = require('./QueryOptions');
 
 /**
- * Represents a builder for constructing SELECT queries dynamically.
+ * Represents a query builder for building SELECT queries.
+ * @extends QueryOptions
  */
 class SelectQueryBuilder extends QueryOptions {
   /**
    * Creates a new instance of SelectQueryBuilder.
    */
+  /**
+   * Represents a SelectQueryBuilder.
+   * @constructor
+   */
   constructor() {
     super();
   }
 
+  /**
+   * Builds the query based on the provided parameters.
+   * @returns {Object} An object containing the query and values.
+   * @throws {Error} If no table is set.
+   */
   buildQuery() {
     let query = '';
     try {
@@ -42,8 +52,8 @@ class SelectQueryBuilder extends QueryOptions {
   }
 
   /**
-   * Builds a SELECT query based on the query builder properties.
-   * @returns {string} - The built SELECT query.
+   * Builds and returns the SELECT query based on the configured fields, table, joins, conditions, group by, order by, limit, and offset.
+   * @returns {string} The generated SELECT query.
    */
   buildSelectQuery() {
     let query = `SELECT ${this.fields} FROM ${this.table}`;
