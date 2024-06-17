@@ -1,6 +1,6 @@
 './db/schema.js';
 
-/**
+/*
  *
  * Copyright © 2024-present, Ian Silverstone
  *
@@ -9,7 +9,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
 
 /**
  * @typedef {Object} ColumnConfig
@@ -27,7 +26,6 @@
  * @property {string} [comment] - Comment for the column.
  * @property {string} [constraint] - Additional constraints for the column.
  * @property {string} [index] - Defines an index on the column.
- * @memberof schema
  */
 
 /**
@@ -64,13 +62,4 @@
  * @property {ConstraintsConfig} [constraints] - Additional constraints on the table.
  * @property {Object.<string, IndexConfig>} [indexes] - Definitions for the indexes on the table.
  */
-
-/**
- * Represents the configuration for a foreign key in a database table.
- * @deprecated Since v0.0.3.  Using&nbsp;{@link ConstraintsConfig}&nbsp;makes the Schema more flexible.
- * @typedef {Object} ForeignKeyConfig
- * @property {string} referenceTable - The name of the referenced table.
- * @property {string[]} referenceColumns - The name(s) of the referenced column(s) in the referenced table.
- * @property {("CASCADE"|"SET NULL"|"RESTRICT")} [onDelete="CASCADE"] - The action to take on deletion of the referenced row.
- * @property {("CASCADE"|"SET NULL"|"RESTRICT")} [onUpdate="CASCADE"] - The action to take on update of the referenced row.
- */
+ 

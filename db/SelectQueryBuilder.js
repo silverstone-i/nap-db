@@ -1,24 +1,49 @@
-'./db/SelectQueryBuilder.js'
+'./db/SelectQueryBuilder.js';
 
-/**
-*
-* Copyright © 2024-present, Ian Silverstone
-*
-* See the LICENSE file at the top-level directory of this distribution
-* for licensing information.
-*
-* Removal or modification of this copyright notice is prohibited.
-*/
+/*
+ * Copyright © 2024-present, Ian Silverstone
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 
 
 const { copyWithin } = require('core-js/core/array');
 const QueryOptions = require('./QueryOptions');
 
+/**
+ * Represents a query builder for constructing SELECT queries.
+ * @extends QueryOptions
+ */
 class SelectQueryBuilder extends QueryOptions {
+  /**
+   * Represents a SelectQueryBuilder.
+   * @constructor
+   */
   constructor() {
     super();
   }
 
+  /**
+   * Builds the query based on the specified table, aggregates, and values.
+   * @returns {Object} An object containing the built query and the associated values.
+   * @throws {Error} If no table is set.
+   * @throws {Error} If an error occurs while building the query.
+   *
+   * @example
+   *
+   * const queryBuilder = new SelectQueryBuilder();
+   * queryBuilder.setTable('users')
+   *      .setFields('id, name, email')
+   *      .addCondition({ field: 'id', operator: '=', value: 1)
+   *      .addCondition({ conjunction: 'OR', field: 'name', operator: 'LIKE', value: '%John%' });
+   *
+   * const { query, values } = queryBuilder.buildQuery();
+   * console.log(query); // SELECT id, name, email FROM users WHERE id = $1 OR name LIKE $2
+   * console.log(values); // [1, '%John%']
+   */
   buildQuery() {
     let query = '';
     try {
@@ -37,6 +62,10 @@ class SelectQueryBuilder extends QueryOptions {
     }
   }
 
+  /**
+   * Builds and returns the SELECT query based on the current state of the SelectQueryBuilder.
+   * @returns {string} The generated SELECT query.
+   */
   buildSelectQuery() {
     let query = `SELECT ${this.fields} FROM ${this.table}`;
     if (this.joins.length > 0) {
@@ -61,6 +90,10 @@ class SelectQueryBuilder extends QueryOptions {
     return query;
   }
 
+  /**
+   * Builds and returns the aggregate query based on the specified aggregates, table, conditions, group by, order by, limit, and offset.
+   * @returns {string} The aggregate query.
+   */
   buildAggregateQuery() {
     const aggregateFields = this.aggregates
       .map((a) => `${a.func}(${a.field}) AS ${a.alias}`)
@@ -85,6 +118,12 @@ class SelectQueryBuilder extends QueryOptions {
     return query;
   }
 
+  /**
+   * Adds joins to the query.
+   *
+   * @param {string} query - The query to add joins to.
+   * @returns {string} The updated query with joins added.
+   */
   addJoins(query) {
     this.joins.forEach((join) => {
       query += ` ${join.type} JOIN ${join.table} ON ${join.condition}`;
@@ -92,6 +131,11 @@ class SelectQueryBuilder extends QueryOptions {
     return query;
   }
 
+  /**
+   * Adds a WHERE clause to the query based on the specified conditions.
+   * @param {string} query - The original query string.
+   * @returns {string} The modified query string with the WHERE clause added.
+   */
   addWhereClause(query) {
     query += ' WHERE ';
 

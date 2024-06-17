@@ -1,6 +1,6 @@
-// './db/Model.js';
+'./db/Model.js';
 
-/**
+/*
  *
  * Copyright © 2024-present, Ian Silverstone
  *
@@ -230,6 +230,25 @@ class Model extends SelectQueryBuilder {
     }
   }
 
+  /**
+   * Fetches all records from the database table and returns the total count of records
+   * @param {Object} options - {@link QueryOptions}
+   * @returns {Promise} - Returns a promise that resolves with the records and total count
+   * @throws {DBError} - Failed to fetch records
+   *
+   * @example
+   *
+   * qo.setTable('table_name')
+   *   .setFields('field1, field2')
+   *   .addCondition({ field: 'field1', operator: '=', value: 'value1' })
+   *   .setOrderBy('field1 ASC')
+   *   .setLimit(10)
+   *   .setOffset(5)
+   *   .addJoin('INNER', 'table2', 'table1.id = table2.id')
+   *   .addAggregate('COUNT', 'name', 'count')
+   *   .setGroupBy('field1');
+   *
+   */
   async findAndCountAll(options) {
     try {
       this.reset();
@@ -275,6 +294,12 @@ class Model extends SelectQueryBuilder {
     }
   }
 
+  /**
+   * Finds a single record in the database based on the provided options.
+   * @param {Object} options - The options for the query.
+   * @returns {Promise<Object|null>} - A promise that resolves to the found record or null if not found.
+   * @throws {DBError} - If an error occurs during the database operation.
+   */
   async findOne(options) {
     try {
       this.reset();
