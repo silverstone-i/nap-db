@@ -1,14 +1,5 @@
 'use strict';
 
-/**
- * Custom errors for the db module
- * @class DBError
- * @extends Error
- * 
- * @constructor
- * @param {string} message - The error message
- * @param {Error} [cause] - The cause of the error
- */
 class DBError extends Error {
   constructor(message, cause) {
     super(message);
@@ -28,11 +19,6 @@ class DBError extends Error {
   }
 }
  
-/**
- * Error thrown when connection parameter is missing
- * @class ConnectionParameterError
- * @extends DBError
- */
 class ConnectionParameterError extends DBError {
   constructor() {
     super('Connection parameter is required');
@@ -40,11 +26,6 @@ class ConnectionParameterError extends DBError {
   }
 }
 
-/**
- * Error thrown when repositories parameter is missing or invalid
- * @class RepositoriesParameterError
- * @extends DBError
- */
 class RepositoriesParameterError extends DBError {
   constructor() {
     super('Repositories parameter is required and must be a plain object');

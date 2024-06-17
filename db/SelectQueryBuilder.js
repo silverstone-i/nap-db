@@ -1,38 +1,24 @@
-'./db/QueryBuilder.js';
+'./db/SelectQueryBuilder.js'
 
 /**
- *
- * Copyright © 2024-present, Ian Silverstone
- *
- * See the LICENSE file at the top-level directory of this distribution
- * for licensing information.
- *
- * Removal or modification of this copyright notice is prohibited.
- */
+*
+* Copyright © 2024-present, Ian Silverstone
+*
+* See the LICENSE file at the top-level directory of this distribution
+* for licensing information.
+*
+* Removal or modification of this copyright notice is prohibited.
+*/
 
+
+const { copyWithin } = require('core-js/core/array');
 const QueryOptions = require('./QueryOptions');
 
-/**
- * Represents a query builder for building SELECT queries.
- * @extends QueryOptions
- */
 class SelectQueryBuilder extends QueryOptions {
-  /**
-   * Creates a new instance of SelectQueryBuilder.
-   */
-  /**
-   * Represents a SelectQueryBuilder.
-   * @constructor
-   */
   constructor() {
     super();
   }
 
-  /**
-   * Builds the query based on the provided parameters.
-   * @returns {Object} An object containing the query and values.
-   * @throws {Error} If no table is set.
-   */
   buildQuery() {
     let query = '';
     try {
@@ -51,10 +37,6 @@ class SelectQueryBuilder extends QueryOptions {
     }
   }
 
-  /**
-   * Builds and returns the SELECT query based on the configured fields, table, joins, conditions, group by, order by, limit, and offset.
-   * @returns {string} The generated SELECT query.
-   */
   buildSelectQuery() {
     let query = `SELECT ${this.fields} FROM ${this.table}`;
     if (this.joins.length > 0) {
@@ -79,10 +61,6 @@ class SelectQueryBuilder extends QueryOptions {
     return query;
   }
 
-  /**
-   * Builds an aggregate query based on the query builder properties.
-   * @returns {string} - The built aggregate query.
-   */
   buildAggregateQuery() {
     const aggregateFields = this.aggregates
       .map((a) => `${a.func}(${a.field}) AS ${a.alias}`)
@@ -107,11 +85,6 @@ class SelectQueryBuilder extends QueryOptions {
     return query;
   }
 
-  /**
-   * Adds JOIN clauses to the query string.
-   * @param {string} query - The query string to which JOIN clauses will be added.
-   * @returns {string} - The query string with JOIN clauses added.
-   */
   addJoins(query) {
     this.joins.forEach((join) => {
       query += ` ${join.type} JOIN ${join.table} ON ${join.condition}`;
@@ -119,11 +92,6 @@ class SelectQueryBuilder extends QueryOptions {
     return query;
   }
 
-  /**
-   * Generate SQL WHERE string based on ConditionsObject
-   * @param {ConditionsObject} conditionsObj - The ConditionsObject containing conditions for WHERE clause.
-   * @returns {string} - SQL WHERE string.
-   */
   addWhereClause(query) {
     query += ' WHERE ';
 

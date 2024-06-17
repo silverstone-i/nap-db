@@ -13,28 +13,7 @@
 const { DBError } = require('./errors');
 const SelectQueryBuilder = require('./SelectQueryBuilder');
 
-/**
- * Model class
- * @class
- * @extends SelectQueryBuilder
- * @param {Object} db - Database connection object
- * @param {Object} pgp - pg-promise instance
- * @param {Object} schema - Schema object
- * @throws {DBError} - Invalid database or schema
- * @returns {Model} - Model instance
- */
-
 class Model extends SelectQueryBuilder {
-  /**
-   * Creates an instance of Model.
-   * @param {Object} db - Database connection object
-   * @param {Object} pgp - pg-promise instance
-   * @param {Object} schema - Schema object
-   * @throws {DBError} - Invalid database or schema
-   * @memberof Model
-   * @constructor
-   * @returns {Model} - Model instance
-   */
   constructor(db, pgp, schema) {
     super();
     if (!db || !pgp) {
@@ -64,15 +43,7 @@ class Model extends SelectQueryBuilder {
   }
 
   // ************************************Getters and Setters************************************
-  /**
-   * pg-promise columnset object for the model
-   * @returns {Object} - Returns the promise columnset object for the model
-   * @memberof Model
-   * @readonly
-   * @instance
-   * @type {Object}
-   *
-   */
+
   get columnset() {
     return this.cs;
   }
@@ -170,11 +141,6 @@ class Model extends SelectQueryBuilder {
   }
 
   // **************************CREATE TABLE*******************************************
-  /**
-   * Creates a table that corresponds to the model's schema and writes it to the database
-   * @returns {Promise} - Returns a promise that resolves when the table is created
-   * @throws {DBError} - Failed to create table
-   */
   async createTable() {
     try {
       return await this.db.none(this.createTableQuery());
@@ -183,13 +149,6 @@ class Model extends SelectQueryBuilder {
     }
   }
 
-  /**
-   * Generates a CREATE TABLE query string based on the model's schema
-   * @param {*} schema
-   * @returns {String} - Returns a CREATE TABLE SQL query string
-   * @memberof Model
-   *
-   */
   createTableQuery(schema = this.schema) {
     const columns = Object.entries(schema.columns)
       .map(([name, config]) => this.#generateColumnDefinition(name, config))
@@ -216,21 +175,6 @@ class Model extends SelectQueryBuilder {
 
   // **************************CRUD Operations*******************************************
 
-  /**   Inserts a record into the database table
-   * @param {Object} dto - Data transfer object
-   * @returns {Promise} - Returns a promise that resolves when the record is inserted
-   * @throws {DBError} - Failed to insert record
-   * @memberof Model
-   *
-   * @example
-   *
-   * const dto = {
-   * name: 'John Doe',
-   * email: 'john@description.com',
-   * age: 30
-   * created_by: 'admin', // REQUIRED if timstamps is enabled
-   * };
-   */
   async insert(dto) {
     try {
       const qInsert = this.pgp.helpers.insert(dto, this.cs.insert);
@@ -240,22 +184,6 @@ class Model extends SelectQueryBuilder {
     }
   }
 
-  /** Inserts a record into the database table and returns the inserted record or specified columns
-   * @param {Object} dto - Data transfer object
-   * @returns {Promise} - Returns a promise that resolves with the inserted record
-   * @throws {DBError} - Failed to insert record
-   * @memberof Model
-   *
-   * @example
-   *
-   * const dto = {
-   * name: 'John Doe',
-   * email: 'john@description.com',
-   * age: 30
-   * created_by: 'admin', // REQUIRED if timstamps is enabled
-   * _returning: 'id' // OPTIONAL
-   * };
-   */
   async insertReturning(dto) {
     try {
       const returning = dto.returning || 'RETURNING *';
@@ -271,22 +199,6 @@ class Model extends SelectQueryBuilder {
       throw new DBError(error.message);
     }
   }
-  /** Fetches all records from the database table
-   * @param {Object} options - {@link QueryOptions}
-   * @returns {Promise} - Returns a promise that resolves with the records
-   * @throws {DBError} - Failed to fetch records
-   * @memberof Model
-   *
-   * @example
-   *
-   * const options = {
-   * columns: ['name', 'email'],
-   * where: 'age > $1',
-   * values: [30],
-   * order: 'name DESC',
-   *
-   * };
-   */
   async findAll(options) {
     try {
       this.reset();
@@ -318,25 +230,6 @@ class Model extends SelectQueryBuilder {
     }
   }
 
-/**
- * Fetches all records from the database table and returns the total count of records
- * @param {Object} options - {@link QueryOptions}
- * @returns {Promise} - Returns a promise that resolves with the records and total count
- * @throws {DBError} - Failed to fetch records
- *
- * @example
- *
- * qo.setTable('table_name')
- *   .setFields('field1, field2')
- *   .addCondition({ field: 'field1', operator: '=', value: 'value1' })
- *   .setOrderBy('field1 ASC')
- *   .setLimit(10)
- *   .setOffset(5)
- *   .addJoin('INNER', 'table2', 'table1.id = table2.id')
- *   .addAggregate('COUNT', 'name', 'count')
- *   .setGroupBy('field1');
- *
- */
   async findAndCountAll(options) {
     try {
       this.reset();
@@ -355,15 +248,6 @@ class Model extends SelectQueryBuilder {
     }
   }
 
-  /**
-   * Finds a record in the database by its primary key value.
-   *
-   * @param {any} pkValue - The value of the primary key.
-   * @param {Object} options - Additional options for the query.
-   * @param {boolean} options.includeTimestamps - Whether to include timestamp fields in the result.
-   * @returns {Promise<Object|null>} A promise that resolves to the found record, or null if not found.
-   * @throws {DBError} If an error occurs during the database operation.
-   */
   findByPK(pkValue, options = {}) {
     try {
       if (pkValue === undefined || pkValue === null) {
@@ -391,13 +275,6 @@ class Model extends SelectQueryBuilder {
     }
   }
 
-
-  /**
-   * Finds a single record in the database based on the provided options.
-   * @param {Object} options - The options for the query.
-   * @returns {Promise<Object|null>} - A promise that resolves to the found record or null if not found.
-   * @throws {DBError} - If an error occurs during the database operation.
-   */
   async findOne(options) {
     try {
       this.reset();
@@ -410,12 +287,6 @@ class Model extends SelectQueryBuilder {
     }
   }
 
-  /**
-   * Updates records in the database based on the provided data transfer object (DTO) and condition.
-   * @param {object} dto - The data transfer object containing the updated values.
-   * @returns {Promise<object>} - A promise that resolves to the result of the update operation.
-   * @throws {DBError} - If the update operation fails or no records are found to update.
-   */
   async update(dto) {
     try {
       let condition = '';
@@ -441,13 +312,6 @@ class Model extends SelectQueryBuilder {
       throw new DBError(error.message);
     }
   }
-  /**
-   * Deletes records from the database based on the provided condition.
-   *
-   * @param {object} dto - The data transfer object containing the condition for deletion.
-   * @returns {Promise<object>} - A promise that resolves to the result of the deletion operation.
-   * @throws {DBError} - If the deletion operation fails or no records are found to delete.
-   */
   async delete(dto) {
     try {
       let condition = '';
@@ -475,11 +339,6 @@ class Model extends SelectQueryBuilder {
   }
 
   // **************************Other Query Operations*******************************************
-  /**
-   * Drops the table associated with the model.
-   * @returns {Promise<void>} A promise that resolves when the table is dropped successfully.
-   * @throws {DBError} If an error occurs while dropping the table.
-   */
   async drop() {
     try {
       return await this.db.none(`DROP TABLE ${this.schema.tableName};`);
@@ -488,11 +347,6 @@ class Model extends SelectQueryBuilder {
     }
   }
 
-  /**
-   * Truncates the table associated with the model.
-   * @returns {Promise<void>} A promise that resolves when the table is truncated.
-   * @throws {DBError} If an error occurs while truncating the table.
-   */
   async truncate() {
     try {
       return await this.db.none(`TRUNCATE TABLE ${this.schema.tableName};`);
@@ -502,13 +356,6 @@ class Model extends SelectQueryBuilder {
   }
   // *******************************Aggregates********************************************
 
-  /**
-   * Performs an aggregation operation on the database.
-   *
-   * @param {Object} options - The options for the aggregation operation.
-   * @returns {Promise} A promise that resolves to the result of the aggregation operation.
-   * @throws {DBError} If an error occurs during the aggregation operation.
-   */
   async aggregate(options) {
     try {
       this.reset();
@@ -523,122 +370,46 @@ class Model extends SelectQueryBuilder {
     }
   }
 
-  /**
-   * Counts the number of documents in the collection that match the given options.
-   *
-   * @param {Object} options - The options to filter the documents.
-   * @returns {Promise<number>} - A promise that resolves to the count of matching documents.
-   */
   async count(options) {
     return await this.aggregate(options);
   }
 
-  //    Finds the maximum value for a given field
-  /**
-   * Finds the maximum value based on the specified options.
-   *
-   * @param {object} options - The options for the aggregation.
-   * @returns {Promise<any>} A promise that resolves to the maximum value.
-   */
   async max(options) {
     return await this.aggregate(options);
   }
 
-  //    Finds the minimum value for a given field
-  /**
-   * Finds the minimum value based on the specified options.
-   *
-   * @param {Object} options - The options for the aggregation.
-   * @returns {Promise} A promise that resolves to the minimum value.
-   */
   async min(options) {
     return await this.aggregate(options);
   }
 
-  //    Calculates the sum of a given field
-  /**
-   * Calculates the sum of the specified options.
-   *
-   * @param {Object} options - The options to be used for aggregation.
-   * @returns {Promise<number>} A promise that resolves to the sum.
-   */
   async sum(options) {
     return await this.aggregate(options);
   }
 
-  //   Finds the variance for a given field
-  /**
-   * Calculates the variance of the data based on the provided options.
-   *
-   * @param {Object} options - The options for calculating the variance.
-   * @returns {Promise<number>} The calculated variance.
-   */
   async variance(options) {
     return await this.aggregate(options);
   }
 
-  //    Finds the standard deviation for a given field
-  /**
-   * Calculates the standard deviation using the specified options.
-   *
-   * @param {Object} options - The options for calculating the standard deviation.
-   * @returns {Promise} A promise that resolves to the result of the standard deviation calculation.
-   */
   async stddev(options) {
     return await this.aggregate(options);
   }
 
-  //    Finds the median for a given field
-  /**
-   * Calculates the median value based on the provided options.
-   *
-   * @param {Object} options - The options for calculating the median.
-   * @returns {Promise} A promise that resolves to the median value.
-   */
   async median(options) {
     return await this.aggregate(options);
   }
 
-  //   Calculates the average of a given field
-  /**
-   * Calculates the average value based on the provided options.
-   *
-   * @param {Object} options - The options for calculating the average.
-   * @returns {Promise<number>} The average value.
-   */
   async average(options) {
     return await this.aggregate(options);
   }
 
-  //    Concatenates strings from multiple records into one string with specified delimiter
-  /**
-   * Aggregates the values of a field into a single string.
-   *
-   * @param {Object} options - The options for the aggregation.
-   * @returns {Promise<string>} A promise that resolves to the aggregated string.
-   */
   async stringAgg(options) {
     return await this.aggregate(options);
   }
   å;
-  // Finds the first value for a given field
-  /**
-   * Retrieves the first value from the database based on the provided options.
-   *
-   * @param {Object} options - The options to filter the query.
-   * @returns {Promise<any>} A promise that resolves to the first value from the database.
-   */
   async firstValue(options) {
     return await this.aggregate(options);
   }
 
-  //    Finds the last value for a given field
-  /**
-   * Retrieves the last value based on the provided options.
-   *
-   * @param {Object} options - The options for retrieving the last value.
-   * @returns {Promise} A promise that resolves with the last value.
-   */
   async lastValue(options) {
     return await this.aggregate(options);
   }
