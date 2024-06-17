@@ -10,7 +10,6 @@
  */
 
 
-const { copyWithin } = require('core-js/core/array');
 const QueryOptions = require('./QueryOptions');
 
 /**
