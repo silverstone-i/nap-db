@@ -4,7 +4,7 @@
   "description": "Map db tables to javascript class",
   "main": "index.js",
   "scripts": {
-    "docs": "jsdoc -c jsdoc.json README.md",
+    "docs": "jsdoc -c jsdoc.json README.md && cp LICENSE docs/",
     "tests": "jest --coverage --verbose",
     "start": "nodemon --delay 5 ./server/app.js"
   },
