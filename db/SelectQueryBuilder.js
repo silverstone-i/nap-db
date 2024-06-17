@@ -1,14 +1,13 @@
-'./db/SelectQueryBuilder.js'
+'./db/SelectQueryBuilder.js';
 
 /*
-* Copyright © 2024-present, Ian Silverstone
-*
-* See the LICENSE file at the top-level directory of this distribution
-* for licensing information.
-*
-* Removal or modification of this copyright notice is prohibited.
-*/
-
+ * Copyright © 2024-present, Ian Silverstone
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 
 const QueryOptions = require('./QueryOptions');
 
@@ -30,15 +29,15 @@ class SelectQueryBuilder extends QueryOptions {
    * @returns {Object} An object containing the built query and the associated values.
    * @throws {Error} If no table is set.
    * @throws {Error} If an error occurs while building the query.
-   * 
+   *
    * @example
-   * 
+   *
    * const queryBuilder = new SelectQueryBuilder();
    * queryBuilder.setTable('users')
    *      .setFields('id, name, email')
    *      .addCondition({ field: 'id', operator: '=', value: 1)
    *      .addCondition({ conjunction: 'OR', field: 'name', operator: 'LIKE', value: '%John%' });
-   * 
+   *
    * const { query, values } = queryBuilder.buildQuery();
    * console.log(query); // SELECT id, name, email FROM users WHERE id = $1 OR name LIKE $2
    * console.log(values); // [1, '%John%']

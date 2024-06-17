@@ -1,14 +1,14 @@
-'./db/errors.js'
+'./db/errors.js';
 
-/**
-*
-* Copyright © 2024-present, Ian Silverstone
-*
-* See the LICENSE file at the top-level directory of this distribution
-* for licensing information.
-*
-* Removal or modification of this copyright notice is prohibited.
-*/
+/*
+ *
+ * Copyright © 2024-present, Ian Silverstone
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
 
 'use strict';
 
@@ -16,7 +16,7 @@
  * Custom errors for the db module
  * @class DBError
  * @extends Error
- * 
+ *
  * @constructor
  * @param {string} message - The error message
  * @param {Error} [cause] - The cause of the error
@@ -39,7 +39,7 @@ class DBError extends Error {
     // }
   }
 }
- 
+
 /**
  * Error thrown when connection parameter is missing
  * @class ConnectionParameterError
